@@ -1,0 +1,1 @@
+Vitrina CONECTADA de Duo Burguer: la sirve Caddy en el VPS, con /api reenviado solo en sus rutas publicas. No es para GitHub Pages.
