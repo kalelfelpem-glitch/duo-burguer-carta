@@ -181,6 +181,14 @@
   .personalizar .grupo{margin-top:6px}
   .tope{font-weight:700; color:var(--gris); font-size:13px}
   .en-pedido{font-size:13.5px; font-weight:800; color:var(--lechuga-oscura)}
+  .tu-pedido{margin:14px 0 0; display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; background:var(--mostaza); border:3px solid var(--tinta); border-radius:14px; padding:10px 12px; box-shadow:4px 4px 0 var(--ketchup); font-size:15.5px}
+  .tu-pedido b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:20px}
+  .tu-pedido .btn{min-height:48px; font-size:16px; width:auto; padding:6px 14px}
+  .nota-edicion{background:#fff; border:3px solid var(--ketchup); border-radius:12px; padding:8px 12px; font-weight:800; margin:4px 0 10px}
+  .nota-edicion button{margin-top:6px; background:none; border:0; padding:0; color:var(--ketchup); font-weight:800; text-decoration:underline; cursor:pointer; min-height:44px}
+  .t-lineas{font-family:"Lilita One","Nunito",sans-serif; font-size:19px; margin:4px 0 2px}
+  .modificar{margin:14px 0}
+  .modificar .fino{margin:8px 0 0}
   .aviso-mesa{margin:12px 0 0; background:var(--ketchup); color:#fff; border:3px solid var(--tinta); border-radius:14px; padding:8px 12px; font-weight:800; text-align:center; font-size:16px; box-shadow:3px 3px 0 var(--tinta)}
   .aviso-mesa b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:22px; letter-spacing:.5px}
   .cinta-muestra{margin:12px 0 0; background:var(--mostaza); border:3px dashed var(--tinta); border-radius:10px; padding:6px 10px; font-weight:800; text-align:center}
@@ -209,6 +217,7 @@
   <div class="aviso" id="aviso" hidden><b>Los pedidos en línea abren muy pronto</b>Mientras tanto, aquí tienes la carta con los precios de hoy.</div>
 </header>
 
+<div class="tu-pedido" id="tu-pedido" hidden></div>
 <section class="evento" id="evento" aria-labelledby="evento-titulo" hidden></section>
 
 <section id="vista-confirmacion" hidden></section>
@@ -253,6 +262,7 @@
   <div class="in">
     <button class="cerrar" type="button" id="cerrar-hoja" aria-label="Cerrar">✕</button>
     <h2 id="hoja-titulo">Tu pedido</h2>
+    <div class="nota-edicion" id="hoja-edicion" hidden></div>
     <p class="nota-evento" id="hoja-evento" hidden></p>
     <div id="hoja-lineas"></div>
     <form id="form" novalidate>
@@ -319,7 +329,7 @@
   var evento = null;
   var carrito = leer('duo-pedido-v2', { tipo: 'carta', eventoId: null, lineas: [] });
   var hoy = new Date().getDay();
-  var sondeo = null, reloj = null;
+  var sondeo = null, reloj = null, relojMod = null;
 
   function leer(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -352,13 +362,52 @@
       r = await fetch(ruta, Object.assign({ cache: 'no-store', credentials: 'omit', signal: ctl.signal }, init || {}));
       clearTimeout(t);
     } catch (e) { return { ok: false, red: true, error: ERROR_RED }; }
+    var srv = Date.parse(r.headers.get('Date') || '');
     var v = r.headers.get('Contrato-Version');
     if (v && !pedirJson.version) { pedirJson.version = v; try { console.info('Contrato-Version', v); } catch (e) {} }
     var cuerpo = null;
     try { cuerpo = await r.json(); } catch (e) { cuerpo = null; }
-    if (!r.ok) return { ok: false, estado: r.status, cuerpo: cuerpo, error: cuerpo && typeof cuerpo.error === 'string' ? cuerpo.error : (r.status === 429 ? 'Vas muy rápido. Espera un momento y vuelve a intentar.' : ERROR_RED) };
+    if (!r.ok) return { ok: false, estado: r.status, cuerpo: cuerpo, servidorMs: isNaN(srv) ? null : srv, error: cuerpo && typeof cuerpo.error === 'string' ? cuerpo.error : (r.status === 429 ? 'Vas muy rápido. Espera un momento y vuelve a intentar.' : ERROR_RED) };
     if (cuerpo == null) return { ok: false, red: true, error: ERROR_RED };
-    return { ok: true, estado: r.status, valor: cuerpo };
+    return { ok: true, estado: r.status, valor: cuerpo, servidorMs: isNaN(srv) ? null : srv };
+  }
+
+  function mmss(ms) { var t = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }
+
+  // ── LO QUE EL CLIENTE PIDIO, SOLO EN SU TELEFONO ─────────────────────
+  // Sin registro ni historial en el servidor (decision del dueno): el pedido queda en
+  // este aparato para verlo al volver a entrar, y se puede modificar mientras el
+  // sistema lo permita (modificableHasta, ORDEN-PC §8). Se borra solo al dia siguiente.
+  function pedidosGuardados() {
+    var ps = leer('duo-pedidos', {}), ahora = Date.now(), cambio = false;
+    Object.keys(ps).forEach(function (id) { if (!ps[id].hechoEn || ahora - ps[id].hechoEn > 24 * 36e5) { delete ps[id]; cambio = true; } });
+    if (cambio) guardar('duo-pedidos', ps);
+    return ps;
+  }
+  // Se puede modificar mientras siga «recibida» y no venza el plazo: si la cocina lo empieza antes, se cierra.
+  function restanteParaModificar(p) { return p && p.tokenEdicion && p.modificableHasta && (!p.estado || p.estado === 'recibida') ? new Date(p.modificableHasta).getTime() - (Date.now() + (p.desfaseMs || 0)) : 0; }
+  function pedidoVigente() {
+    var ps = pedidosGuardados(), mejor = null;
+    Object.keys(ps).forEach(function (id) {
+      var p = ps[id];
+      if (Date.now() - p.hechoEn > 12 * 36e5 || p.estado === 'entregada' || p.estado === 'anulada') return;
+      if (!mejor || p.hechoEn > mejor.hechoEn) mejor = Object.assign({ ordenId: id }, p);
+    });
+    return mejor;
+  }
+  var relojTuPedido = null;
+  function pintarTuPedido() {
+    var el = $('tu-pedido'), p = CONECTADA ? pedidoVigente() : null;
+    clearInterval(relojTuPedido);
+    if (!p || carrito.editando || !$('vista-confirmacion').hidden) { el.hidden = true; return; }
+    var pinta = function () {
+      var r = restanteParaModificar(p);
+      el.innerHTML = '<div><b>Tu pedido #' + esc(p.consecutivo) + '</b> · ' + esc(NOMBRE_ESTADO[p.estado] || 'Recibido') +
+        (r > 0 ? '<br>Puedes modificarlo durante ' + mmss(r) + ' más' : '') + '</div><a class="btn" href="#pedido=' + encodeURIComponent(p.ordenId) + '">Ver mi pedido</a>';
+      if (r <= 0) clearInterval(relojTuPedido);
+    };
+    el.hidden = false; pinta();
+    if (restanteParaModificar(p) > 0) relojTuPedido = setInterval(pinta, 1000);
   }
 
   // ── ORIGEN DEL QR ────────────────────────────────────────────────────
@@ -603,7 +652,7 @@
     var n = lineasValidas().reduce(function (s, l) { return s + l.cantidad; }, 0);
     $('barra').hidden = !enLinea || n === 0 || !$('vista-confirmacion').hidden;
     $('cuenta').textContent = n;
-    $('barra-texto').textContent = carrito.tipo === 'evento' ? 'Ver mi apartado' : 'Ver mi pedido';
+    $('barra-texto').textContent = carrito.editando ? 'Ver los cambios' : carrito.tipo === 'evento' ? 'Ver mi apartado' : 'Ver mi pedido';
     $('barra-total').textContent = pesos(totales().sub);
   }
 
@@ -631,7 +680,11 @@
   }
   function pintarHoja() {
     var ls = lineasValidas();
-    $('hoja-titulo').textContent = carrito.tipo === 'evento' ? 'Tu apartado' : 'Tu pedido';
+    var editado = carrito.editando ? pedidosGuardados()[carrito.editando] : null;
+    $('hoja-titulo').textContent = editado ? 'Modificar tu pedido #' + editado.consecutivo : carrito.tipo === 'evento' ? 'Tu apartado' : 'Tu pedido';
+    $('hoja-edicion').hidden = !editado;
+    if (editado) $('hoja-edicion').innerHTML = 'Estás cambiando tu pedido. Guarda antes de que se acabe el plazo: te quedan ' + mmss(restanteParaModificar(editado)) + '.<br><button type="button" data-descartar>Descartar cambios y volver a mi pedido</button>';
+    $('enviar').textContent = editado ? 'Guardar cambios' : 'Enviar pedido';
     $('hoja-evento').hidden = carrito.tipo !== 'evento';
     if (carrito.tipo === 'evento' && evento) $('hoja-evento').textContent = 'Semana de reapertura: se entrega ' + punto(evento.entregaDesde ? 'el ' + fecha(evento.entregaDesde, true) : 'el día del evento');
     $('hoja-lineas').innerHTML = ls.length ? ls.map(function (l) {
@@ -710,9 +763,14 @@
 
     var cuerpo = armarCuerpo(!sinComparar);
     var json = JSON.stringify(cuerpo);
-    var b = $('enviar'); b.disabled = true; b.textContent = 'Enviando…';
-    var r = await pedirJson('/api/ordenes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotencia-Clave': claveParaCuerpo(json) }, body: json });
-    b.disabled = false; b.textContent = 'Enviar pedido';
+    var editando = carrito.editando || null;
+    var anterior = editando ? pedidosGuardados()[editando] : null;
+    if (editando && !anterior) { carrito.editando = null; return marcar('', 'No encontramos tu pedido en este teléfono.'); }
+    var b = $('enviar'); b.disabled = true; b.textContent = editando ? 'Guardando…' : 'Enviando…';
+    var r = editando
+      ? await pedirJson('/api/ordenes/' + encodeURIComponent(editando), { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Edicion-Clave': anterior.tokenEdicion || '' }, body: json })
+      : await pedirJson('/api/ordenes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotencia-Clave': claveParaCuerpo(json) }, body: json });
+    b.disabled = false; b.textContent = editando ? 'Guardar cambios' : 'Enviar pedido';
     if (!r.ok) {
       if (r.estado === 409 && r.cuerpo && typeof r.cuerpo.totalVigenteCop === 'number') {
         $('precio-cambio').hidden = false;
@@ -724,22 +782,37 @@
       return marcar('', r.error);
     }
     var o = r.valor;
-    if (!o || typeof o.ordenId !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: llámanos al ' + NEQUI + '.');
-    var pedidos = leer('duo-pedidos', {});
-    pedidos[o.ordenId] = { consecutivo: o.consecutivo, totalCop: o.totalCop, canal: canal, mesa: canal === 'mesa' ? numeroMesa() : null, eventoId: cuerpo.eventoId || null, entregaDesde: cuerpo.eventoId && evento ? evento.entregaDesde : null, hechoEn: Date.now() };
+    var id = editando || (o && o.ordenId);
+    if (!o || typeof id !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: llámanos al ' + NEQUI + '.');
+    var t = totales();
+    var vista = lineasValidas().map(function (l) { return { productoId: l.productoId, selecciones: l.selecciones || [], cantidad: l.cantidad, nombre: nombreLinea(l), subtotal: precioLinea(l) * l.cantidad }; });
+    if (t.empaque) vista.push({ extra: true, nombre: 'Empaque para llevar', subtotal: t.empaque });
+    if (t.domicilio) vista.push({ extra: true, nombre: 'Domicilio', subtotal: t.domicilio });
+    var f = $('form'), pedidos = pedidosGuardados(), previo = pedidos[id] || {};
+    pedidos[id] = Object.assign({}, previo, {
+      consecutivo: o.consecutivo, totalCop: o.totalCop, estado: o.estado || 'recibida', canal: canal, mesa: canal === 'mesa' ? numeroMesa() : null,
+      eventoId: carrito.tipo === 'evento' ? carrito.eventoId : null, entregaDesde: carrito.tipo === 'evento' && evento ? evento.entregaDesde : null,
+      hechoEn: previo.hechoEn || Date.now(),
+      modificableHasta: o.modificableHasta || previo.modificableHasta || null,
+      tokenEdicion: o.tokenEdicion || previo.tokenEdicion || null,
+      desfaseMs: r.servidorMs ? r.servidorMs - Date.now() : (previo.desfaseMs || 0),
+      lineasVista: vista,
+      formulario: { canal: canal, nombre: f.nombre.value, telefono: f.telefono.value, zona: f.zona.value, direccion: f.direccion.value, referencia: f.referencia.value, notas: f.notas.value }
+    });
     guardar('duo-pedidos', pedidos);
     carrito = { tipo: 'carta', eventoId: null, lineas: [] }; guardarCarrito();
     try { localStorage.removeItem('duo-envio'); } catch (e) {}
     cerrarHoja();
-    location.hash = 'pedido=' + encodeURIComponent(o.ordenId);
+    if (location.hash === '#pedido=' + encodeURIComponent(id)) mostrarPedido(id); else location.hash = 'pedido=' + encodeURIComponent(id);
   }
 
   // ── EL SEGUIMIENTO ───────────────────────────────────────────────────
   async function mostrarPedido(id) {
     $('vista-tienda').hidden = true; $('evento').hidden = true; $('vista-confirmacion').hidden = false; pintarBarra();
     $('cta-hero').parentNode.hidden = true;
-    var local = leer('duo-pedidos', {})[id] || {};
+    var local = pedidosGuardados()[id] || {};
     var r = await pedirJson('/api/ordenes/' + encodeURIComponent(id));
+    clearInterval(relojMod);
     if (location.hash.indexOf('pedido=') !== 1) return;
     if (!r.ok) {
       $('vista-confirmacion').innerHTML = '<div class="confirmacion"><div class="titulo">' + (r.estado === 404 ? 'No encontramos ese pedido' : 'No pudimos ver tu pedido') + '</div><p>' + esc(r.error) + '</p>' +
@@ -749,6 +822,17 @@
       return;
     }
     var o = r.valor, estados = local.canal === 'domicilio' ? ESTADOS : ESTADOS.filter(function (e) { return e !== 'en-camino'; });
+    var restante = restanteParaModificar(local);
+    var modificable = restante > 0 && o.estado === 'recibida';
+    if (local.hechoEn) {
+      var ps = pedidosGuardados(); if (ps[id]) { ps[id].estado = o.estado; ps[id].totalCop = o.totalCop; if (!modificable) delete ps[id].formulario; guardar('duo-pedidos', ps); }
+    }
+    var lineasHtml = (local.lineasVista || []).length ? '<div class="lineas"><div class="t-lineas">Lo que pediste</div>' + local.lineasVista.map(function (l) {
+      return '<div class="linea"><div class="n">' + (l.extra ? '' : l.cantidad + ' × ') + esc(l.nombre) + '</div><div class="p">' + pesos(l.subtotal) + '</div></div>';
+    }).join('') + '</div>' : '';
+    var bloqueMod = modificable
+      ? '<div class="modificar"><button class="btn" type="button" data-modificar="' + esc(id) + '">Modificar mi pedido</button><p class="fino">Puedes cambiarlo durante <b id="cuenta-mod">' + mmss(restante) + '</b> más.</p></div>'
+      : (local.tokenEdicion ? '<p class="fino">Tu pedido ya no se puede modificar: la cocina ya lo tiene.</p>' : '');
     var i = estados.indexOf(o.estado);
     var pasos = o.estado === 'anulada' ? '<p class="cancelada">Este pedido fue anulado. Si tienes dudas, llámanos al ' + esc(NEQUI) + '.</p>' :
       '<ol class="estados" style="grid-template-columns:repeat(' + estados.length + ',1fr)">' + estados.map(function (e, k) { return '<li class="' + (k < i ? 'hecho' : k === i ? 'ahora' : '') + '">' + NOMBRE_ESTADO[e] + '</li>'; }).join('') + '</ol>';
@@ -758,12 +842,17 @@
         '<div class="titulo">¡Pedido recibido!</div>' +
         '<p style="margin:6px 0 0">Tu número de pedido es</p><div class="numero">' + esc(o.consecutivo) + '</div>' + cuando +
         '<p style="margin:0">' + (local.canal === 'domicilio' ? 'Te lo llevamos.' : local.canal === 'mesa' ? 'Te lo llevamos a la mesa ' + esc(local.mesa || '') + '.' : 'Lo recoges en el local.') + ' Deja esta página abierta: el estado se actualiza solo.</p>' +
-        pasos +
-        '<div class="total"><span>Total</span><span>' + pesos(o.totalCop) + '</span></div>' +
+        pasos + lineasHtml +
+        '<div class="total"><span>Total</span><span>' + pesos(o.totalCop) + '</span></div>' + bloqueMod +
         '<p class="fino">Pagas al recibirlo: Nequi al ' + esc(NEQUI) + ' o en el local.</p>' +
         '<a class="btn" href="#">Volver a la carta</a>' +
       '</div>';
     if (!mostrarPedido.visto) { mostrarPedido.visto = true; $('vista-confirmacion').scrollIntoView({ block: 'start' }); }
+    if (modificable) relojMod = setInterval(function () {
+      var q = restanteParaModificar(local), c = $('cuenta-mod');
+      if (c) c.textContent = mmss(q);
+      if (q <= 0) { clearInterval(relojMod); if (location.hash.indexOf('pedido=') === 1) mostrarPedido(id); }
+    }, 1000);
     clearTimeout(sondeo);
     if (o.estado !== 'entregada' && o.estado !== 'anulada') sondeo = setTimeout(function () { if (location.hash.indexOf('pedido=') === 1) mostrarPedido(id); }, 15000);
   }
@@ -771,10 +860,10 @@
   function ruta() {
     var m = location.hash.match(/^#pedido=(.+)$/);
     if (m && CONECTADA) return mostrarPedido(decodeURIComponent(m[1]));
-    clearTimeout(sondeo); mostrarPedido.visto = false;
+    clearTimeout(sondeo); clearInterval(relojMod); mostrarPedido.visto = false;
     $('cta-hero').parentNode.hidden = false;
     $('vista-confirmacion').hidden = true; $('vista-tienda').hidden = false; pintarEvento();
-    pintarBarra();
+    pintarBarra(); pintarTuPedido();
   }
 
   // ── EL EVENTO: la semana de reapertura ───────────────────────────────
@@ -896,6 +985,32 @@
     pintarCarta(); pintarBarra();
   }
 
+  function empezarModificacion(id) {
+    var local = pedidosGuardados()[id];
+    if (!local || restanteParaModificar(local) <= 0) return mostrarPedido(id);
+    carrito = {
+      tipo: local.eventoId ? 'evento' : 'carta', eventoId: local.eventoId || null, editando: id,
+      lineas: (local.lineasVista || []).filter(function (l) { return !l.extra; }).map(function (l) { return { clave: claveLinea(l.productoId, l.selecciones || []), productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] }; })
+    };
+    guardar('duo-pedido-v2', carrito);
+    location.hash = '';
+    setTimeout(function () {
+      abrirHoja();
+      var fo = local.formulario || {}, f = $('form');
+      var radio = document.querySelector('#canales input[value="' + CSS.escape(fo.canal || '') + '"]'); if (radio) radio.checked = true;
+      ['nombre', 'telefono', 'direccion', 'referencia', 'notas'].forEach(function (k) { if (fo[k] != null) f[k].value = fo[k]; });
+      if (fo.zona) f.zona.value = fo.zona;
+      f.autoriza.checked = true;
+      pintarCanalElegido();
+    }, 60);
+  }
+  function descartarModificacion() {
+    var id = carrito.editando;
+    carrito = { tipo: 'carta', eventoId: null, lineas: [] }; guardarCarrito();
+    cerrarHoja();
+    if (id) location.hash = 'pedido=' + encodeURIComponent(id);
+  }
+
   // ── EVENTOS DE LA PAGINA ─────────────────────────────────────────────
   $('carta').addEventListener('change', function (ev) {
     var caja = ev.target.closest && ev.target.closest('[data-arma]');
@@ -926,7 +1041,9 @@
     }
     if ((t = ev.target.closest('[data-apartar]'))) { agregarLinea('evento', evento.eventoId, t.getAttribute('data-apartar'), []); return; }
     if ((t = ev.target.closest('[data-mas],[data-menos]'))) { ev.preventDefault(); cambiarCantidad(t.getAttribute('data-mas') || t.getAttribute('data-menos'), t.hasAttribute('data-mas') ? 1 : -1); return; }
-    if (ev.target.id === 'confirmar-precio') { enviar(null, true); }
+    if (ev.target.id === 'confirmar-precio') { enviar(null, true); return; }
+    if ((t = ev.target.closest('[data-modificar]'))) { empezarModificacion(t.getAttribute('data-modificar')); return; }
+    if (ev.target.closest('[data-descartar]')) { descartarModificacion(); return; }
   });
   $('evento').addEventListener('submit', function (ev) { if (ev.target.id === 'ev-voto') votar(ev); });
   $('abrir-hoja').addEventListener('click', abrirHoja);
