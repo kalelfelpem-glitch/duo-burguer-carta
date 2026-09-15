@@ -181,6 +181,8 @@
   .personalizar .grupo{margin-top:6px}
   .tope{font-weight:700; color:var(--gris); font-size:13px}
   .en-pedido{font-size:13.5px; font-weight:800; color:var(--lechuga-oscura)}
+  .aviso-mesa{margin:12px 0 0; background:var(--ketchup); color:#fff; border:3px solid var(--tinta); border-radius:14px; padding:8px 12px; font-weight:800; text-align:center; font-size:16px; box-shadow:3px 3px 0 var(--tinta)}
+  .aviso-mesa b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:22px; letter-spacing:.5px}
   .cinta-muestra{margin:12px 0 0; background:var(--mostaza); border:3px dashed var(--tinta); border-radius:10px; padding:6px 10px; font-weight:800; text-align:center}
   .nota-evento{background:var(--mostaza); border:2px solid var(--tinta); border-radius:10px; padding:6px 10px; font-weight:800; font-size:15px; margin:4px 0 10px}
   .precio-cambio{margin:10px 0; background:#fff; border:3px solid var(--ketchup); border-radius:12px; padding:10px 12px; font-weight:800}
@@ -213,6 +215,7 @@
 
 <div id="vista-tienda">
   <nav class="chips" aria-label="Secciones de la carta"><div class="row" id="chips"></div></nav>
+  <div class="aviso-mesa" id="aviso-mesa" hidden></div>
   <div class="cinta-muestra" id="cinta-muestra" hidden>DATOS DE MUESTRA · estos precios no son los de verdad</div>
   <main id="carta"></main>
 
@@ -365,6 +368,9 @@
     if (o && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(o) && o.length <= 40) { try { sessionStorage.setItem('duo-origen', o); } catch (e) {} return o; }
     try { return sessionStorage.getItem('duo-origen') || 'directo'; } catch (e) { return 'directo'; }
   })();
+
+  // El QR de cada mesa trae ?o=mesa-N: el pedido sale como de esa mesa sin que nadie lo escoja.
+  function numeroMesa() { var m = /^mesa-(\d+)$/.exec(origen); return m ? m[1] : null; }
 
   // ── LA CARTA ──────────────────────────────────────────────────────────
   function franjaDeAhora() {
@@ -604,7 +610,7 @@
   // ── LA HOJA DEL PEDIDO ────────────────────────────────────────────────
   function pintarCanales() {
     var ops = [];
-    if (/^mesa/.test(origen) && carrito.tipo === 'carta') ops.push(['mesa', 'En la mesa']);
+    if (numeroMesa() && carrito.tipo === 'carta') ops.push(['mesa', 'En la mesa ' + numeroMesa()]);
     ops.push(['recoger', 'Recoger en el local']);
     if (zonas.length) ops.push(['domicilio', 'A domicilio']);
     var actual = canalElegido() || ops[0][0];
@@ -671,7 +677,12 @@
 
   function armarCuerpo(conPrecio) {
     var f = $('form'), canal = canalElegido();
-    var cuerpo = { canal: canal, origen: origen, cliente: { nombre: f.nombre.value.trim(), telefono: f.telefono.value.replace(/[^\d+]/g, '') }, lineas: [] };
+    var cuerpo = { canal: canal, origen: origen, lineas: [] };
+    // En mesa el nombre y el celular son opcionales (§3.4): si vienen vacios, no viajan.
+    var cliente = {}, nombre = f.nombre.value.trim(), telefono = f.telefono.value.replace(/[^\d+]/g, '');
+    if (nombre) cliente.nombre = nombre;
+    if (telefono) cliente.telefono = telefono;
+    if (canal !== 'mesa' || nombre || telefono) cuerpo.cliente = cliente;
     if (carrito.tipo === 'evento') cuerpo.eventoId = carrito.eventoId;
     lineasValidas().forEach(function (l) {
       var x = { productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] };
@@ -715,7 +726,7 @@
     var o = r.valor;
     if (!o || typeof o.ordenId !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: llámanos al ' + NEQUI + '.');
     var pedidos = leer('duo-pedidos', {});
-    pedidos[o.ordenId] = { consecutivo: o.consecutivo, totalCop: o.totalCop, canal: canal, eventoId: cuerpo.eventoId || null, entregaDesde: cuerpo.eventoId && evento ? evento.entregaDesde : null, hechoEn: Date.now() };
+    pedidos[o.ordenId] = { consecutivo: o.consecutivo, totalCop: o.totalCop, canal: canal, mesa: canal === 'mesa' ? numeroMesa() : null, eventoId: cuerpo.eventoId || null, entregaDesde: cuerpo.eventoId && evento ? evento.entregaDesde : null, hechoEn: Date.now() };
     guardar('duo-pedidos', pedidos);
     carrito = { tipo: 'carta', eventoId: null, lineas: [] }; guardarCarrito();
     try { localStorage.removeItem('duo-envio'); } catch (e) {}
@@ -746,7 +757,7 @@
       '<div class="confirmacion">' +
         '<div class="titulo">¡Pedido recibido!</div>' +
         '<p style="margin:6px 0 0">Tu número de pedido es</p><div class="numero">' + esc(o.consecutivo) + '</div>' + cuando +
-        '<p style="margin:0">' + (local.canal === 'domicilio' ? 'Te lo llevamos.' : local.canal === 'mesa' ? 'Te lo llevamos a la mesa.' : 'Lo recoges en el local.') + ' Deja esta página abierta: el estado se actualiza solo.</p>' +
+        '<p style="margin:0">' + (local.canal === 'domicilio' ? 'Te lo llevamos.' : local.canal === 'mesa' ? 'Te lo llevamos a la mesa ' + esc(local.mesa || '') + '.' : 'Lo recoges en el local.') + ' Deja esta página abierta: el estado se actualiza solo.</p>' +
         pasos +
         '<div class="total"><span>Total</span><span>' + pesos(o.totalCop) + '</span></div>' +
         '<p class="fino">Pagas al recibirlo: Nequi al ' + esc(NEQUI) + ' o en el local.</p>' +
@@ -871,8 +882,9 @@
       $('cinta-muestra').hidden = !rs.some(function (r) { return r.valor.esMuestra; });
       var z = await pedirJson('/api/zonas');
       zonas = z.ok && z.valor && Array.isArray(z.valor.zonas) ? z.valor.zonas : [];
-      $('pedir').hidden = false; $('cta-hero').textContent = 'Arma tu pedido';
+      $('pedir').hidden = false; $('cta-hero').textContent = numeroMesa() ? 'Pide para tu mesa' : 'Arma tu pedido';
       $('aviso').hidden = true;
+      if (numeroMesa()) { $('aviso-mesa').hidden = false; $('aviso-mesa').innerHTML = 'Estás pidiendo desde la <b>mesa ' + esc(numeroMesa()) + '</b>. Tu pedido llega a esta mesa.'; }
     } else {
       catalogo = desdeLocal(); enLinea = false; franjaActual = null;
       $('aviso').innerHTML = '<b>Ahora mismo no podemos recibir pedidos por aquí</b>Estos son los precios de la carta. Si quieres pedir, llámanos al ' + esc(NEQUI) + '.';
