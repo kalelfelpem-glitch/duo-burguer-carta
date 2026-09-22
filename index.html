@@ -280,7 +280,7 @@
         <div class="campo" data-campo="referencia"><label for="f-referencia">Referencia <span style="font-weight:400">(opcional)</span></label><input id="f-referencia" name="referencia" maxlength="160" placeholder="Portón azul, segundo piso…"><div class="error"></div></div>
       </div>
       <div class="campo" data-campo="notas"><label for="f-notas">Notas para la cocina <span style="font-weight:400">(opcional)</span></label><textarea id="f-notas" name="notas" maxlength="300" placeholder="Sin cebolla, la tocineta bien tostada…"></textarea><div class="error"></div></div>
-      <label class="autoriza"><input type="checkbox" name="autoriza" id="f-autoriza"><span>Autorizo a Duo Burguer a usar mi nombre, celular y dirección solo para preparar y entregar este pedido.</span></label>
+      <label class="autoriza" id="bloque-autoriza"><input type="checkbox" name="autoriza" id="f-autoriza"><span>Autorizo a Duo Burguer a usar mi nombre, celular y dirección solo para preparar y entregar este pedido, según su <a href="https://caja.duoburguer.prommter.shop/politica-de-datos" target="_blank" rel="noopener">política de datos</a>.</span></label>
       <div class="error-general" data-error="autoriza"></div>
       <div id="desglose"></div>
       <div class="total"><span>Total estimado</span><span id="hoja-total">$0</span></div>
@@ -669,7 +669,16 @@
     $('f-zona').innerHTML = '<option value="">Escoge tu zona</option>' + zonas.map(function (z) { return '<option value="' + esc(z.zonaId) + '">' + esc(z.nombre) + ' · ' + pesos(z.costoCop) + '</option>'; }).join('');
     pintarCanalElegido();
   }
-  function pintarCanalElegido() { $('bloque-domicilio').hidden = canalElegido() !== 'domicilio'; pintarTotales(); }
+  // En la mesa no se pide ningun dato personal: la cocina sabe a que mesa va. Recoger y domicilio
+  // piden nombre, celular y la autorizacion de la Ley 1581 (CONTRATO-API §3.4, campo autorizacion).
+  function pintarCanalElegido() {
+    var c = canalElegido(), mesa = c === 'mesa';
+    $('bloque-domicilio').hidden = c !== 'domicilio';
+    document.querySelector('.campo[data-campo="nombre"]').hidden = mesa;
+    document.querySelector('.campo[data-campo="telefono"]').hidden = mesa;
+    $('bloque-autoriza').hidden = mesa;
+    pintarTotales();
+  }
   function pintarTotales() {
     var t = totales();
     var d = '';
@@ -731,11 +740,11 @@
   function armarCuerpo(conPrecio) {
     var f = $('form'), canal = canalElegido();
     var cuerpo = { canal: canal, origen: origen, lineas: [] };
-    // En mesa el nombre y el celular son opcionales (§3.4): si vienen vacios, no viajan.
-    var cliente = {}, nombre = f.nombre.value.trim(), telefono = f.telefono.value.replace(/[^\d+]/g, '');
-    if (nombre) cliente.nombre = nombre;
-    if (telefono) cliente.telefono = telefono;
-    if (canal !== 'mesa' || nombre || telefono) cuerpo.cliente = cliente;
+    // En la mesa no viaja ningun dato personal; en recoger y domicilio van con su autorizacion.
+    if (canal !== 'mesa') {
+      cuerpo.cliente = { nombre: f.nombre.value.trim(), telefono: f.telefono.value.replace(/[^\d+]/g, '') };
+      cuerpo.autorizacion = f.autoriza.checked === true;
+    }
     if (carrito.tipo === 'evento') cuerpo.eventoId = carrito.eventoId;
     lineasValidas().forEach(function (l) {
       var x = { productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] };
@@ -759,7 +768,7 @@
     if (canal !== 'mesa' && (tel.length < 7 || tel.length > 15)) return marcar('telefono', 'Tu celular debe tener entre 7 y 15 dígitos.');
     if (canal === 'domicilio' && !f.zona.value) return marcar('zona', 'Escoge la zona para saber cuánto cuesta el envío.');
     if (canal === 'domicilio' && !f.direccion.value.trim()) return marcar('direccion', 'Para llevártelo necesitamos la dirección.');
-    if (!f.autoriza.checked) return marcar('autoriza', 'Marca la autorización para poder tomar tu pedido.');
+    if (canal !== 'mesa' && !f.autoriza.checked) return marcar('autoriza', 'Marca la autorización para poder tomar tu pedido.');
 
     var cuerpo = armarCuerpo(!sinComparar);
     var json = JSON.stringify(cuerpo);
