@@ -302,7 +302,7 @@
     <ol class="pasos">
       <li><span class="num">1</span><div><b>Arma tu pedido aquí.</b> Agrega lo que quieras y dinos si lo recoges o te lo llevamos.</div></li>
       <li><span class="num">2</span><div><b>Llega directo a la cocina</b> con su número, y en esta misma página ves cómo va.</div></li>
-      <li><span class="num">3</span><div><b>Pagas al recibirlo:</b> Nequi al <b>300 326 0448</b> o en el local. Todo pedido para llevar lleva empaque: <b>$1.000</b>.</div></li>
+      <li><span class="num">3</span><div><b>Pagas al recibirlo:</b> en el local o a quien te lo lleva. Todo pedido para llevar lleva empaque: <b>$1.000</b>.</div></li>
     </ol>
   </section>
 
@@ -310,8 +310,8 @@
     <div class="titulo">Dónde estamos</div>
     <div class="dato"><b>Dirección</b><div>Calle 56 Norte con Carrera 10, esquina<br>Villa del Viento · Popayán<br><a href="https://www.google.com/maps/search/?api=1&query=Calle%2056%20Norte%20con%20Carrera%2010%2C%20esquina%2C%20Villa%20del%20Viento%20%C2%B7%20Popay%C3%A1n" target="_blank" rel="noopener">Cómo llegar →</a></div></div>
     <div class="dato"><b>Horario</b><div>Todos los días de 7:00 a.m. a 10:00 p.m.</div></div>
-    <div class="dato"><b>Nequi</b><div>300 326 0448</div></div>
-    <div class="dato"><b>Contacto</b><div>300 326 0448</div></div>
+    
+    
   </section>
 </div>
 
@@ -390,8 +390,10 @@
   var MAPS = "https://www.google.com/maps/search/?api=1&query=Calle%2056%20Norte%20con%20Carrera%2010%2C%20esquina%2C%20Villa%20del%20Viento%20%C2%B7%20Popay%C3%A1n";
   var HORAS = {"abre":7,"cierra":22,"texto":"Todos los días de 7:00 a.m. a 10:00 p.m."};
   var PROMO_DOMICILIO = {"precio":3000,"franja":"manana","desde":null};
-  var CONTACTO = "300 326 0448";
-  var NEQUI = "300 326 0448";
+  var CONTACTO = null;
+  var NEQUI = null;
+  // «llámanos al …» solo si hay numero confirmado; si no, al local.
+  function llamanos() { return CONTACTO ? 'llámanos al ' + CONTACTO : 'pregunta en el local'; }
   var ERROR_RED = 'No pudimos conectarnos con la cocina. Revisa tu internet e inténtalo otra vez.';
   var ESTADOS = ['recibida', 'en-preparacion', 'lista', 'en-camino', 'entregada'];
   var NOMBRE_ESTADO = { recibida: 'Recibido', 'en-preparacion': 'Preparando', lista: 'Listo', 'en-camino': 'En camino', entregada: 'Entregado' };
@@ -708,7 +710,7 @@
     el.hidden = !PROMO_DOMICILIO || (PROMO_DOMICILIO.desde && d < PROMO_DOMICILIO.desde) || (fin && d >= fin);
     if (el.hidden) return;
     var alm = almuerzoDeHoy();
-    var como = CONECTADA && enLinea && zonas.length ? 'Escoge «Domicilio» al armar tu pedido.' : 'Pídelo al ' + CONTACTO + '.';
+    var como = CONECTADA && enLinea && zonas.length ? 'Escoge «Domicilio» al armar tu pedido.' : CONTACTO ? 'Pídelo al ' + CONTACTO + '.' : '';
     var hasta = fin ? 'Hasta el ' + diaCorto(new Date(Date.UTC(+fin.slice(0, 4), +fin.slice(5, 7) - 1, +fin.slice(8) - 1)).toISOString().slice(0, 10)) : 'Solo por un mes';
     el.innerHTML = MOTO + '<span class="k">' + esc(hasta) + '</span>' +
       '<span class="t">Domicilio en la mañana a <b>' + pesos(PROMO_DOMICILIO.precio) + '</b></span>' +
@@ -963,7 +965,7 @@
     }
     var o = r.valor;
     var id = editando || (o && o.ordenId);
-    if (!o || typeof id !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: llámanos al ' + NEQUI + '.');
+    if (!o || typeof id !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: ' + llamanos() + '.');
     var t = totales();
     var vista = lineasValidas().map(function (l) { return { productoId: l.productoId, selecciones: l.selecciones || [], cantidad: l.cantidad, nombre: nombreLinea(l), subtotal: precioLinea(l) * l.cantidad }; });
     if (t.empaque) vista.push({ extra: true, nombre: 'Empaque para llevar', subtotal: t.empaque });
@@ -997,7 +999,7 @@
     if (location.hash.indexOf('pedido=') !== 1) return;
     if (!r.ok) {
       $('vista-confirmacion').innerHTML = '<div class="confirmacion"><div class="titulo">' + (r.estado === 404 ? 'No encontramos ese pedido' : 'No pudimos ver tu pedido') + '</div><p>' + esc(r.error) + '</p>' +
-        (local.consecutivo ? '<p>Tu número era el <b>' + esc(local.consecutivo) + '</b>. Si tienes dudas, llámanos al ' + esc(NEQUI) + '.</p>' : '') + '<a class="btn" href="#">Volver a la carta</a></div>';
+        (local.consecutivo ? '<p>Tu número era el <b>' + esc(local.consecutivo) + '</b>. Si tienes dudas, ' + esc(llamanos()) + '.</p>' : '') + '<a class="btn" href="#">Volver a la carta</a></div>';
       clearTimeout(sondeo);
       if (r.red || r.estado === 429) sondeo = setTimeout(function () { if (location.hash.indexOf('pedido=') === 1) mostrarPedido(id); }, 20000);
       return;
@@ -1015,7 +1017,7 @@
       ? '<div class="modificar"><button class="btn" type="button" data-modificar="' + esc(id) + '">Modificar mi pedido</button><p class="fino">Puedes cambiarlo durante <b id="cuenta-mod">' + mmss(restante) + '</b> más.</p></div>'
       : (local.tokenEdicion ? '<p class="fino">Tu pedido ya no se puede modificar: la cocina ya lo tiene.</p>' : '');
     var i = estados.indexOf(o.estado);
-    var pasos = o.estado === 'anulada' ? '<p class="cancelada">Este pedido fue anulado. Si tienes dudas, llámanos al ' + esc(NEQUI) + '.</p>' :
+    var pasos = o.estado === 'anulada' ? '<p class="cancelada">Este pedido fue anulado. Si tienes dudas, ' + esc(llamanos()) + '.</p>' :
       '<ol class="estados" style="grid-template-columns:repeat(' + estados.length + ',1fr)">' + estados.map(function (e, k) { return '<li class="' + (k < i ? 'hecho' : k === i ? 'ahora' : '') + '">' + NOMBRE_ESTADO[e] + '</li>'; }).join('') + '</ol>';
     var cuando = local.eventoId ? '<p class="nota-evento">' + esc(local.eventoNombre || 'Pedido del evento') + ': se entrega ' + esc(punto(local.entregaDesde ? 'el ' + fecha(local.entregaDesde, true) : 'el día del evento')) + '</p>' : '';
     $('vista-confirmacion').innerHTML =
@@ -1025,7 +1027,7 @@
         '<p style="margin:0">' + (local.canal === 'domicilio' ? 'Te lo llevamos.' : local.canal === 'mesa' ? 'Te lo llevamos a la mesa ' + esc(local.mesa || '') + '.' : 'Lo recoges en el local.') + ' Deja esta página abierta: el estado se actualiza solo.</p>' +
         pasos + lineasHtml +
         '<div class="total"><span>Total</span><span>' + pesos(o.totalCop) + '</span></div>' + bloqueMod +
-        '<p class="fino">Pagas al recibirlo: Nequi al ' + esc(NEQUI) + ' o en el local.</p>' +
+        '<p class="fino">Pagas al recibirlo: ' + (NEQUI ? 'Nequi al ' + esc(NEQUI) + ' o en el local' : 'en el local o a quien te lo lleva') + '.</p>' +
         '<a class="btn" href="#">Volver a la carta</a>' +
       '</div>';
     if (!mostrarPedido.visto) { mostrarPedido.visto = true; $('vista-confirmacion').scrollIntoView({ block: 'start' }); }
@@ -1255,7 +1257,7 @@
     } else {
       // Sin sistema (al cargar o en una recarga del vigia): nada invita a pedir, y el pedido a medio armar se guarda.
       catalogo = desdeLocal(); enLinea = false; franjaActual = null;
-      $('aviso').innerHTML = '<b>Ahora mismo no podemos recibir pedidos por aquí</b>Estos son los precios de la carta. Si quieres pedir, llámanos al ' + esc(NEQUI) + '.';
+      $('aviso').innerHTML = '<b>Ahora mismo no podemos recibir pedidos por aquí</b>Estos son los precios de la carta. ' + (CONTACTO ? 'Si quieres pedir, llámanos al ' + esc(CONTACTO) + '.' : 'Si quieres pedir, hazlo en el local.');
       $('aviso').hidden = false; $('pedir').hidden = true; $('aviso-mesa').hidden = true; $('cta-hero').textContent = 'Ver la carta';
       if (!$('hoja').hidden) cerrarHoja();
     }
