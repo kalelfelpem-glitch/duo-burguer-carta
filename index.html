@@ -347,6 +347,28 @@
   .sec-pistas{list-style:none; margin:8px 0 0; padding:0; display:grid; gap:6px}
   .sec-pistas li{background:#fff; border-left:5px solid var(--mostaza); border-radius:8px; padding:6px 10px; font-weight:700; font-size:15px}
   .chips a.chip-secretas{background:var(--mostaza)}
+
+  /* ---- LA GUIA DE LA PRIMERA VEZ: cómo pedir en cuatro pasos. Una tarjeta en su sitio, no una
+     ventana encima: se lee, se pasa o se cierra, y vuelve con «¿Cómo pedir?» ---- */
+  .guia{margin:14px 5px 0 0; background:var(--papel); border:3px solid var(--tinta); border-radius:18px; box-shadow:5px 5px 0 var(--mostaza); padding:12px 14px 14px; text-align:left}
+  .guia-cabeza{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .guia-cabeza b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:19px; letter-spacing:.3px}
+  .guia-cabeza button{flex:none; width:44px; height:44px; border-radius:50%; border:2px solid var(--tinta); background:#fff; font-size:20px; font-weight:900; cursor:pointer}
+  .guia-paso{display:grid; grid-template-columns:84px 1fr; gap:12px; align-items:center; margin-top:10px; min-height:96px}
+  .guia-paso svg{width:84px; height:84px; display:block}
+  .guia-paso .num{display:inline-block; font-family:"Lilita One","Nunito",sans-serif; font-size:14px; letter-spacing:1px; color:var(--ketchup); text-transform:uppercase}
+  .guia-paso h3{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:24px; line-height:1.1; margin:2px 0 4px}
+  .guia-paso p{margin:0; font-size:16.5px; font-weight:700; line-height:1.4}
+  .guia-pie{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px}
+  .guia-puntos{display:flex; gap:6px}
+  .guia-puntos i{width:10px; height:10px; border-radius:50%; border:2px solid var(--tinta); background:#fff}
+  .guia-puntos i.ya{background:var(--ketchup)}
+  .guia-botones{display:flex; align-items:center; gap:6px}
+  .guia-botones .atras{min-height:44px; padding:0 8px; background:none; border:0; font-weight:800; color:var(--gris-texto); cursor:pointer; font-size:15px}
+  .guia-botones .btn{width:auto; min-height:48px; font-size:18px; padding:4px 18px}
+  .ver-guia{display:inline-flex; align-items:center; gap:6px; margin:10px 0 0; min-height:44px; background:none; border:0; padding:0; font-weight:800; font-size:16px; color:var(--tinta); text-decoration:underline; text-underline-offset:3px; cursor:pointer}
+  .ver-guia span{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--mostaza); border:2px solid var(--tinta); text-decoration:none; font-family:"Lilita One","Nunito",sans-serif}
+  @media (prefers-reduced-motion:no-preference){ .guia-paso{animation:entra .25s ease-out} @keyframes entra{from{opacity:0; transform:translateX(12px)} to{opacity:1; transform:none}} }
 </style>
 </head>
 <body>
@@ -365,6 +387,8 @@
     </video>
   </div>
   <div class="cta-hero"><div class="hoy-hero" id="hoy-hero" hidden></div><a class="btn primario" href="#carta" id="cta-hero">Ver la carta</a></div>
+  <section class="guia" id="guia" aria-label="Cómo pedir" hidden></section>
+  <button class="ver-guia" type="button" id="ver-guia" hidden><span aria-hidden="true">?</span>¿Cómo pedir?</button>
   <a class="promo-dom" id="promo-dom" href="#cat-almuerzos" hidden></a>
   <div class="aviso" id="aviso" hidden><b>Los pedidos en línea abren muy pronto</b>Mientras tanto, aquí tienes la carta con los precios de hoy.</div>
 </header>
@@ -768,6 +792,67 @@
   $('tarjetas').addEventListener('pointerdown', function (ev) { if (ev.target.id !== 'lienzo') return; raspando = true; ultimo = null; lienzo.setPointerCapture(ev.pointerId); rascar(ev); });
   $('tarjetas').addEventListener('pointermove', function (ev) { if (raspando && ev.target.id === 'lienzo') rascar(ev); });
   ['pointerup', 'pointercancel'].forEach(function (t) { $('tarjetas').addEventListener(t, function () { if (raspando) { raspando = false; ultimo = null; medirRaspado(); } }); });
+
+  // ── LA GUÍA DE LA PRIMERA VEZ ────────────────────────────────────────
+  // Dueño, 2026-10-01: «que la primera vez que entren haya una guía de cómo pedir, de forma simple,
+  // como un tutorial que absolutamente cualquier persona pueda entender, visible pero no invasivo ni
+  // tampoco muy pequeño». Sale sola la primera vez (en este teléfono) y después vuelve con «¿Cómo pedir?».
+  // Los pasos dicen lo que de verdad hay: con o sin pedidos en línea, desde una mesa o no, con o sin domicilio.
+  var guiaPaso = 0;
+  var DIBUJO = {
+    carta: '<svg viewBox="0 0 84 84" aria-hidden="true"><rect x="16" y="8" width="52" height="68" rx="8" fill="#FFF7E6" stroke="#1A1A1A" stroke-width="4"/><rect x="24" y="18" width="36" height="8" rx="4" fill="#E11D2E"/><path d="M26 36h22M26 46h28M26 56h18" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/><circle cx="58" cy="46" r="3" fill="#E11D2E"/><circle cx="54" cy="56" r="3" fill="#E11D2E"/></svg>',
+    agregar: '<svg viewBox="0 0 84 84" aria-hidden="true"><rect x="6" y="26" width="72" height="32" rx="16" fill="#2F8C2A" stroke="#1A1A1A" stroke-width="4"/><text x="42" y="48" text-anchor="middle" font-family="Lilita One, Nunito, sans-serif" font-size="17" fill="#fff">Agregar</text><path d="M60 64l8 14 4-8 8-2z" fill="#F6D32D" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/></svg>',
+    barra: '<svg viewBox="0 0 84 84" aria-hidden="true"><rect x="16" y="4" width="52" height="76" rx="9" fill="#F7EBD9" stroke="#1A1A1A" stroke-width="4"/><rect x="21" y="56" width="42" height="16" rx="5" fill="#E11D2E" stroke="#1A1A1A" stroke-width="3"/><text x="42" y="67.5" text-anchor="middle" font-family="Lilita One, Nunito, sans-serif" font-size="8" fill="#fff">Ver mi pedido</text><path d="M26 16h32M26 26h24M26 36h30" stroke="#C8B89C" stroke-width="4" stroke-linecap="round"/></svg>',
+    enviar: '<svg viewBox="0 0 84 84" aria-hidden="true"><rect x="12" y="10" width="60" height="64" rx="10" fill="#F6D32D" stroke="#1A1A1A" stroke-width="4"/><text x="42" y="36" text-anchor="middle" font-family="Lilita One, Nunito, sans-serif" font-size="12" fill="#1A1A1A">Tu número</text><text x="42" y="62" text-anchor="middle" font-family="Lilita One, Nunito, sans-serif" font-size="26" fill="#E11D2E" stroke="#1A1A1A" stroke-width="2" paint-order="stroke">27</text></svg>',
+    whatsapp: '<svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="40" r="28" fill="#2F8C2A" stroke="#1A1A1A" stroke-width="4"/><path d="M22 72l6-14" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/><path d="M33 31c0 12 9 21 20 21l4-6-7-4-3 3c-4-2-6-4-8-8l3-3-4-7z" fill="#fff" stroke="#1A1A1A" stroke-width="2.5" stroke-linejoin="round"/></svg>'
+  };
+  function pasosDeLaGuia() {
+    var mesa = numeroMesa(), dom = enLinea && zonas.length;
+    if (!enLinea) return [
+      { d: 'carta', t: 'Mira la carta', x: 'Baja con el dedo: lo de esta hora sale primero, con su precio.' },
+      { d: 'whatsapp', t: CONTACTO ? 'Escríbenos por WhatsApp' : 'Pídelo en el local', x: CONTACTO ? 'Al ' + CONTACTO + '. Dinos qué quieres y cómo lo quieres.' : 'Muy pronto también podrás pedir por aquí.' },
+      { d: 'enviar', t: 'Paga en la caja', x: PAGO }
+    ];
+    var como = mesa ? 'Tu pedido llega a la mesa ' + mesa + '. Escribe tu nombre'
+      : 'Escoge si lo recoges' + (dom ? ' o te lo llevamos a la casa' : ' en el local') + ', y escribe tu nombre y tu celular';
+    return [
+      { d: 'carta', t: 'Mira la carta', x: 'Baja con el dedo: lo de esta hora sale primero, con su precio.' },
+      { d: 'agregar', t: 'Toca «Agregar»', x: 'En todo lo que quieras. Si algo se escoge, como los huevos del desayuno, marca la opción antes.' },
+      { d: 'barra', t: 'Toca «Ver mi pedido»', x: 'Es la barra roja de abajo. Ahí ves lo que llevas y el total.' },
+      { d: 'enviar', t: 'Envía y listo', x: como + '. Toca «Enviar pedido»: te damos un número y ves cómo va. ' + PAGO }
+    ];
+  }
+  function guiaVista() { return !!leer('duo-guia-vista', false); }
+  function pintarGuia(abrir) {
+    var g = $('guia'), v = $('ver-guia');
+    var mostrar = abrir || !guiaVista();
+    if (!$('vista-confirmacion').hidden) { g.hidden = true; v.hidden = true; return; }
+    g.hidden = !mostrar; v.hidden = mostrar;
+    if (!mostrar) return;
+    var pasos = pasosDeLaGuia(); if (guiaPaso >= pasos.length) guiaPaso = 0;
+    var p = pasos[guiaPaso], ultimo = guiaPaso === pasos.length - 1;
+    g.innerHTML = '<div class="guia-cabeza"><b>' + (guiaVista() ? '¿Cómo pedir?' : '¿Primera vez? Así de fácil se pide') + '</b>' +
+      '<button type="button" data-guia="cerrar" aria-label="Cerrar la guía">✕</button></div>' +
+      '<div class="guia-paso" aria-live="polite">' + DIBUJO[p.d] + '<div><span class="num">Paso ' + (guiaPaso + 1) + ' de ' + pasos.length + '</span><h3>' + esc(p.t) + '</h3><p>' + esc(p.x) + '</p></div></div>' +
+      '<div class="guia-pie"><div class="guia-puntos" aria-hidden="true">' + pasos.map(function (_, i) { return '<i' + (i <= guiaPaso ? ' class="ya"' : '') + '></i>'; }).join('') + '</div>' +
+      '<div class="guia-botones">' + (guiaPaso ? '<button type="button" class="atras" data-guia="atras">Atrás</button>' : '<button type="button" class="atras" data-guia="cerrar">Ya sé pedir</button>') +
+      '<button type="button" class="btn primario" data-guia="' + (ultimo ? 'listo' : 'siguiente') + '">' + (ultimo ? '¡A pedir!' : 'Siguiente') + '</button></div></div>';
+  }
+  function cerrarGuia(irALaCarta) {
+    guardar('duo-guia-vista', true); guiaPaso = 0; pintarGuia(false);
+    if (irALaCarta) $('carta').scrollIntoView({ block: 'start' });
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-guia]');
+    if (b) {
+      var a = b.getAttribute('data-guia');
+      if (a === 'siguiente') { guiaPaso++; pintarGuia(true); }
+      else if (a === 'atras') { guiaPaso = Math.max(0, guiaPaso - 1); pintarGuia(true); }
+      else cerrarGuia(a === 'listo');
+      return;
+    }
+    if (ev.target.closest('#ver-guia')) { guiaPaso = 0; pintarGuia(true); $('guia').scrollIntoView({ block: 'center' }); }
+  });
 
   // ── LA CARTA ──────────────────────────────────────────────────────────
   function franjaLocal() { var h = horaBogota(); return h >= 4 && h < 12 ? 'manana' : h >= 12 && h < 18 ? 'almuerzo' : 'noche'; }
@@ -1392,7 +1477,7 @@
 
   // ── EL SEGUIMIENTO ───────────────────────────────────────────────────
   async function mostrarPedido(id) {
-    $('vista-tienda').hidden = true; $('evento').hidden = true; $('vista-confirmacion').hidden = false; pintarBarra(); clearInterval(reloj);
+    $('vista-tienda').hidden = true; $('evento').hidden = true; $('vista-confirmacion').hidden = false; pintarBarra(); clearInterval(reloj); $('guia').hidden = true; $('ver-guia').hidden = true;
     $('cta-hero').parentNode.hidden = true;
     var local = pedidosGuardados()[id] || {};
     var consulta = consultarAvisos();
@@ -1451,7 +1536,7 @@
     if (m && CONECTADA) return mostrarPedido(decodeURIComponent(m[1]));
     clearTimeout(sondeo); clearInterval(relojMod); mostrarPedido.visto = false;
     $('cta-hero').parentNode.hidden = false;
-    $('vista-confirmacion').hidden = true; $('vista-tienda').hidden = false; pintarEvento();
+    $('vista-confirmacion').hidden = true; $('vista-tienda').hidden = false; pintarEvento(); pintarGuia(false);
     pintarBarra(); pintarTuPedido();
   }
 
@@ -1747,7 +1832,7 @@
   // o el momento del evento, y repinta lo que depende de eso (a medianoche el 31 pasa a «¡Es hoy!» y el 1 se va).
   var visto = null;
   function momentoDeLaPagina() { return [diaDeHoy(), franjaLocal(), cerradoAhora(), evento ? momentoEvento() : ''].join('|'); }
-  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta(), refrescarTarjetas()]).then(function () { pintarCarta(); ruta(); visto = momentoDeLaPagina(); }); }
+  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta(), refrescarTarjetas()]).then(function () { pintarCarta(); ruta(); pintarGuia(false); visto = momentoDeLaPagina(); }); }
   var vueltas = 0;
   setInterval(function () {
     if (visto === null) return;
