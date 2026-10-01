@@ -264,6 +264,54 @@
   .precio-cambio{margin:10px 0; background:#fff; border:3px solid var(--ketchup); border-radius:12px; padding:10px 12px; font-weight:800}
   .precio-cambio .btn{margin-top:8px}
   .campo select{width:100%; min-height:48px; padding:10px 12px; border:2px solid var(--tinta); border-radius:10px; background:#fff; font-size:17px}
+
+  /* ---- LAS 50 TARJETAS SECRETAS: se abre con el QR de la tarjeta (?o=tarjeta-secreta) ---- */
+  .secretas{margin:18px 0 0; background:var(--papel); border:3px solid var(--tinta); border-radius:20px; box-shadow:6px 6px 0 var(--mostaza); overflow:hidden}
+  .sec-cabeza{position:relative; isolation:isolate; background:var(--tinta); color:var(--crema); padding:16px 14px 18px}
+  .sec-cabeza::before{content:""; position:absolute; inset:0; z-index:-1; background:repeating-conic-gradient(from 0deg at 50% 0%, #262320 0 8deg, var(--tinta) 8deg 16deg)}
+  .sec-cabeza .k{display:inline-block; background:var(--mostaza); color:var(--tinta); border:3px solid var(--crema); border-radius:10px; padding:1px 12px 3px; font-family:"Lilita One","Nunito",sans-serif; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; transform:rotate(-2deg)}
+  .sec-cabeza h2{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:clamp(28px,8.4vw,36px); line-height:1; margin:10px 0 6px; color:#fff}
+  .sec-cabeza h2 span{color:var(--mostaza)}
+  .sec-cabeza p{margin:0; font-weight:700; font-size:15.5px}
+  .sec-bloque{padding:16px 14px; border-top:2px dashed var(--borde)}
+  .sec-bloque h3{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:22px; margin:0 0 4px}
+  .sec-bloque > p{margin:0 0 10px; font-size:15px; color:var(--gris-texto); font-weight:700}
+  .sec-fila{display:flex; gap:8px}
+  .sec-fila input{flex:1; min-width:0; min-height:56px; font-family:"Lilita One","Nunito",sans-serif; font-size:28px; text-align:center; letter-spacing:.1em; border:3px solid var(--tinta); border-radius:12px; background:#fff; color:var(--tinta)}
+  .sec-fila .btn{width:auto; min-height:56px; font-size:18px; padding:6px 16px}
+  .sec-aviso{min-height:1.2em; margin:6px 0 0; color:var(--ketchup); font-weight:800; font-size:14.5px}
+  .rasca{position:relative; margin-top:10px; border:3px solid var(--tinta); border-radius:16px; overflow:hidden; min-height:200px; background:#fff}
+  .rasca[hidden]{display:none}
+  .regalo{padding:16px; display:flex; flex-direction:column; gap:6px; align-items:flex-start}
+  .regalo .sellos{display:flex; flex-wrap:wrap; gap:6px}
+  .regalo .sello{font-family:"Lilita One","Nunito",sans-serif; font-size:14px; letter-spacing:1px; text-transform:uppercase; padding:2px 10px; border-radius:999px; border:2px solid var(--tinta)}
+  .regalo b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:28px; line-height:1.05}
+  .regalo p{margin:0; font-size:15.5px; font-weight:700}
+  .regalo .como{font-size:14px; color:var(--gris-texto)}
+  .rasca canvas{position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:grab}
+  .rasca.destapada canvas{opacity:0; transition:opacity .5s ease; pointer-events:none}
+  .destapar{margin-top:8px; background:none; border:0; padding:0; min-height:44px; color:var(--ketchup); font-weight:800; text-decoration:underline; cursor:pointer; font-size:15px}
+  .chips-parche{display:flex; flex-wrap:wrap; gap:8px; min-height:44px; align-items:center; margin-top:10px}
+  .ficha-n{display:inline-flex; align-items:center; gap:4px; border:2px solid var(--tinta); border-radius:12px; padding:4px 4px 4px 12px; font-family:"Lilita One","Nunito",sans-serif; font-size:20px; font-variant-numeric:tabular-nums}
+  .ficha-n button{min-width:36px; min-height:36px; border:0; background:transparent; font-size:20px; font-weight:900; cursor:pointer; color:inherit}
+  .vacio{font-size:14.5px; color:var(--gris-texto); font-weight:700}
+  .niveles{list-style:none; margin:12px 0 0; padding:0; display:grid; gap:8px}
+  .nivel{display:grid; grid-template-columns:40px 1fr; gap:10px; align-items:center; border:2px solid var(--borde); border-radius:12px; padding:8px 10px; background:#fff}
+  .nivel .ic{width:40px; height:40px; border-radius:50%; border:2px solid var(--borde); display:grid; place-items:center; font-family:"Lilita One","Nunito",sans-serif; font-size:16px; color:var(--gris)}
+  .nivel b{display:block; font-size:15.5px}
+  .nivel span{font-size:14px; color:var(--gris-texto); font-weight:700}
+  .nivel.ganado{border-color:var(--tinta); background:#E9F6E3}
+  .nivel.ganado .ic{background:var(--lechuga); border-color:var(--tinta); color:var(--tinta)}
+  .rejilla{display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:4px; margin-top:8px}
+  .celda{aspect-ratio:1; border-radius:6px; border:2px dashed #C8B89C; display:grid; place-items:center; font-size:11px; font-weight:900; color:var(--gris); font-variant-numeric:tabular-nums}
+  .celda.si{border:2px solid var(--tinta); color:var(--tinta)}
+  .familias{display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-size:13px; font-weight:800}
+  .familias span{display:inline-flex; align-items:center; gap:5px}
+  .familias i{width:14px; height:14px; border-radius:50%; border:2px solid var(--tinta); display:inline-block}
+  .sec-pasos{margin:0; padding-left:22px; display:grid; gap:6px; font-weight:700; font-size:15px}
+  .sec-pistas{list-style:none; margin:8px 0 0; padding:0; display:grid; gap:6px}
+  .sec-pistas li{background:#fff; border-left:5px solid var(--mostaza); border-radius:8px; padding:6px 10px; font-weight:700; font-size:15px}
+  .chips a.chip-secretas{background:var(--mostaza)}
 </style>
 </head>
 <body>
@@ -287,6 +335,7 @@
 </header>
 
 <div class="tu-pedido" id="tu-pedido" hidden></div>
+<section class="secretas" id="tarjetas" aria-label="Las tarjetas secretas" hidden></section>
 <section class="evento" id="evento" aria-labelledby="evento-titulo" hidden></section>
 
 <section id="vista-confirmacion" hidden></section>
@@ -396,6 +445,7 @@
   // «llámanos al …» solo si hay numero confirmado; si no, al local.
   function llamanos() { return CONTACTO ? 'escríbenos por WhatsApp al ' + CONTACTO : 'pregunta en el local'; }
   var PAGO = "Para pagar, acércate a la caja.";
+  var TARJETAS = {"activas":false,"cuantas":50,"origen":"tarjeta-secreta","vigenteHasta":null,"pistas":[],"familias":[{"id":"pan","nombre":"Pan","color":"#F4A742","tinta":"#1A1A1A","desde":1,"hasta":10},{"id":"ketchup","nombre":"Kétchup","color":"#E11D2E","tinta":"#FFF7E6","desde":11,"hasta":20},{"id":"mostaza","nombre":"Mostaza","color":"#F6D32D","tinta":"#1A1A1A","desde":21,"hasta":30},{"id":"lechuga","nombre":"Lechuga","color":"#4CAF42","tinta":"#1A1A1A","desde":31,"hasta":40},{"id":"crema","nombre":"Crema","color":"#F7EBD9","tinta":"#1A1A1A","desde":41,"hasta":50}],"regalos":{"descuento":{"titulo":"10% de descuento","detalle":"En toda tu compra.","deDueno":true},"mini":{"titulo":"Coca-Cola mini gratis","detalle":"La de 250 ml, por la compra de una Hamburguesa Especial.","deDueno":true,"productos":["bebida-coca-cola-250"]},"dorada":{"titulo":"Hamburguesa Especial gratis","detalle":"Una de las dos tarjetas doradas: pide tu Especial y no la pagas.","sello":"Dorada","productos":["hamburguesa-especial"]},"inauguracion":{"titulo":"Pase de la inauguración","detalle":"Una Coca-Cola 1,5 L gratis el sábado 31 de octubre, con cualquier compra.","sello":"Nº 31","productos":["bebida-coca-cola-1500"]},"papas":{"titulo":"Porción de papas gratis","detalle":"Con cualquier hamburguesa que pidas.","productos":["adicion-papas"]},"tocineta":{"titulo":"Tocineta gratis","detalle":"La adición de tocineta en tu hamburguesa va por la casa.","productos":["adicion-tocineta"]}},"regaloDe":["dorada","descuento","mini","descuento","papas","mini","mini","mini","mini","papas","tocineta","mini","mini","mini","papas","descuento","descuento","tocineta","descuento","papas","tocineta","mini","tocineta","descuento","papas","tocineta","descuento","mini","tocineta","papas","inauguracion","descuento","descuento","descuento","papas","mini","mini","descuento","descuento","papas","tocineta","mini","descuento","descuento","papas","descuento","mini","descuento","tocineta","dorada"],"parche":{"minimoDescuento":2,"descuento":15,"compraMinima":40000,"tamano":5,"premioCinco":"Salchipapa grande gratis","productoCinco":"salchipapa-pollo-carne-mixta","arcoiris":{"titulo":"+ 5 Coca-Cola mini","detalle":"Si las cinco son de cinco colores distintos.","propuesta":true}}};
   var ERROR_RED = 'No pudimos conectarnos con la cocina. Revisa tu internet e inténtalo otra vez.';
   var ESTADOS = ['recibida', 'en-preparacion', 'lista', 'en-camino', 'entregada'];
   var NOMBRE_ESTADO = { recibida: 'Recibido', 'en-preparacion': 'Preparando', lista: 'Listo', 'en-camino': 'En camino', entregada: 'Entregado' };
@@ -517,6 +567,163 @@
 
   // El QR de cada mesa trae ?o=mesa-N: el pedido sale como de esa mesa sin que nadie lo escoja.
   function numeroMesa() { var m = /^mesa-(\d+)$/.exec(origen); return m ? m[1] : null; }
+
+  // ── LAS 50 TARJETAS SECRETAS ─────────────────────────────────────────
+  // Idea del dueño: 50 tarjetas escondidas por Popayán. El QR de la tarjeta trae ?o=tarjeta-secreta
+  // y abre esta sección: escribe tu número, raspa y destapa tu regalo; júntate con otros (parche) y
+  // ganan más. Los regalos salen de datos.ts (cada número, siempre el mismo). Cuáles ya se usaron lo
+  // dice el sistema (GET /api/tarjetas); sin él no se inventa ninguna «ya cazada».
+  var usadas = null;   // null = no se sabe; [] o [n…] = lo que dice el sistema
+  function dos(n) { return ('0' + n).slice(-2); }
+  function familiaDe(n) { for (var i = 0; i < TARJETAS.familias.length; i++) { var f = TARJETAS.familias[i]; if (n >= f.desde && n <= f.hasta) return f; } return TARJETAS.familias[0]; }
+  function regaloDe(n) { return TARJETAS.regalos[TARJETAS.regaloDe[n - 1]]; }
+  function leerNumero(t) { var x = String(t || '').trim(); if (!/^\d{1,2}$/.test(x)) return null; var n = +x; return n >= 1 && n <= TARJETAS.cuantas ? n : null; }
+  function selloDe(n) { var f = familiaDe(n); return '<span class="sello" style="background:' + f.color + ';color:' + f.tinta + '">Nº ' + dos(n) + ' · ' + esc(f.nombre) + '</span>'; }
+  function seccionTarjetasVisible() { return TARJETAS.activas || origen === TARJETAS.origen || location.hash === '#tarjetas'; }
+  var parche = leer('duo-parche', []);
+  if (!Array.isArray(parche)) parche = [];
+
+  function pintarTarjetas() {
+    var s = $('tarjetas');
+    if (!seccionTarjetasVisible()) { s.hidden = true; return; }
+    s.hidden = false;
+    var mio = leer('duo-mi-tarjeta', null);
+    var f = function (x) { return '<span><i style="background:' + x.color + '"></i>' + esc(x.nombre) + ' ' + dos(x.desde) + '–' + dos(x.hasta) + '</span>'; };
+    s.innerHTML =
+      '<div class="sec-cabeza"><span class="k">¡Me encontraste!</span>' +
+        '<h2>Las ' + TARJETAS.cuantas + ' tarjetas <span>secretas</span></h2>' +
+        '<p>Están escondidas por Popayán. Si encontraste una, aquí descubres tu regalo.' + (TARJETAS.vigenteHasta ? ' Valen hasta el ' + esc(diaCorto(TARJETAS.vigenteHasta)) + '.' : '') + '</p></div>' +
+      '<div class="sec-bloque"><h3>¿Cuál es tu número?</h3><p>Está en el frente de tu tarjeta.</p>' +
+        '<form class="sec-fila" id="sec-form" novalidate><input id="sec-numero" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="08" aria-label="Número de tu tarjeta" value="' + (mio ? dos(mio) : '') + '">' +
+        '<button class="btn primario" type="submit">Ver mi regalo</button></form><p class="sec-aviso" id="sec-aviso" role="status"></p>' +
+        '<div class="rasca" id="rasca" hidden><div class="regalo" id="regalo"></div><canvas id="lienzo" aria-hidden="true"></canvas></div>' +
+        '<button class="destapar" type="button" id="destapar" hidden>Destapar sin raspar</button></div>' +
+      '<div class="sec-bloque"><h3>Arma tu parche</h3><p>Junta los números de tus amigos: entre más tarjetas, más ganan.</p>' +
+        '<form class="sec-fila" id="sec-parche" novalidate><input id="sec-numero-parche" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="12" aria-label="Agregar un número al parche">' +
+        '<button class="btn" type="submit">Agregar</button></form><p class="sec-aviso" id="sec-aviso-parche" role="status"></p>' +
+        '<div class="chips-parche" id="chips-parche"></div><ul class="niveles" id="niveles"></ul>' +
+        '<div class="familias">' + TARJETAS.familias.map(f).join('') + '</div></div>' +
+      (usadas ? '<div class="sec-bloque"><h3>La cacería</h3><p>Las de color ya se reclamaron en caja. Las punteadas siguen escondidas: quedan ' + (TARJETAS.cuantas - usadas.length) + '.</p><div class="rejilla">' +
+        Array.apply(null, Array(TARJETAS.cuantas)).map(function (_, i) {
+          var n = i + 1, fa = familiaDe(n);
+          return usadas.indexOf(n) !== -1 ? '<span class="celda si" style="background:' + fa.color + ';color:' + fa.tinta + '">' + dos(n) + '</span>' : '<span class="celda">' + dos(n) + '</span>';
+        }).join('') + '</div></div>' : '') +
+      ((TARJETAS.pistas || []).length ? '<div class="sec-bloque"><h3>Pistas</h3><ul class="sec-pistas">' + TARJETAS.pistas.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul></div>' : '') +
+      '<div class="sec-bloque"><h3>Cómo se reclama</h3><ol class="sec-pasos">' +
+        '<li>Ven al local con tu tarjeta en la mano: sin la tarjeta no hay regalo.</li>' +
+        '<li>Muéstrale a la cajera tu regalo o tu parche en esta pantalla.</li>' +
+        '<li>Ella se queda con la tarjeta: cada una se usa una sola vez.</li></ol></div>';
+    pintarParche();
+    if (mio) mostrarRegalo(mio, false);
+  }
+
+  // El regalo bajo una capa para raspar con el dedo; «Destapar sin raspar» para quien no puede.
+  var lienzo = null, pincel = null, raspando = false, ultimo = null, trazos = 0;
+  function mostrarRegalo(n, tapar) {
+    var r = regaloDe(n), caja = $('rasca');
+    caja.hidden = false;
+    if (usadas && usadas.indexOf(n) !== -1) {
+      $('regalo').innerHTML = '<div class="sellos">' + selloDe(n) + '</div><b>Esta ya se reclamó</b><p>Alguien la cambió en caja. Quedan ' + (TARJETAS.cuantas - usadas.length) + ' escondidas: sigue buscando.</p>';
+      caja.classList.add('destapada'); $('destapar').hidden = true; return;
+    }
+    $('regalo').innerHTML = '<div class="sellos">' + selloDe(n) + (r.sello ? '<span class="sello" style="background:var(--tinta);color:var(--mostaza)">★ ' + esc(r.sello) + '</span>' : '') + '</div>' +
+      '<b>' + esc(r.titulo) + '</b><p>' + esc(r.detalle) + '</p><p class="como">Muéstrale esta pantalla a la cajera con tu tarjeta en la mano. O guárdala para un parche.</p>';
+    if (tapar) { $('destapar').hidden = false; taparDeNuevo(); }
+    else { caja.classList.add('destapada'); $('destapar').hidden = true; }
+  }
+  function taparDeNuevo() {
+    var caja = $('rasca'); lienzo = $('lienzo'); pincel = lienzo.getContext('2d', { willReadFrequently: true });
+    caja.classList.remove('destapada');
+    var m = caja.getBoundingClientRect(), w = m.width, h = m.height;
+    if (!w || !h) return;
+    var k = Math.min(window.devicePixelRatio || 1, 2);
+    lienzo.width = Math.round(w * k); lienzo.height = Math.round(h * k);
+    pincel.setTransform(k, 0, 0, k, 0, 0); pincel.globalCompositeOperation = 'source-over';
+    var plata = pincel.createLinearGradient(0, 0, w, h);
+    plata.addColorStop(0, '#AEB4BB'); plata.addColorStop(.45, '#E6E9EC'); plata.addColorStop(1, '#9EA5AD');
+    pincel.fillStyle = plata; pincel.fillRect(0, 0, w, h);
+    pincel.save(); pincel.translate(w / 2, h / 2); pincel.rotate(-.2); pincel.fillStyle = 'rgba(26,26,26,.13)'; pincel.font = "18px 'Lilita One', sans-serif"; pincel.textAlign = 'center';
+    for (var y = -h; y < h; y += 34) for (var x = -w; x < w; x += 96) pincel.fillText('DUO ★', x + ((y / 34) % 2) * 48, y);
+    pincel.restore();
+    pincel.textAlign = 'center'; pincel.fillStyle = '#1A1A1A';
+    pincel.font = "30px 'Lilita One', sans-serif"; pincel.fillText('¡RASPA AQUÍ!', w / 2, h / 2 + 4);
+    pincel.font = '800 14px Nunito, sans-serif'; pincel.fillText('con el dedo', w / 2, h / 2 + 28);
+    ultimo = null; trazos = 0;
+  }
+  function rascar(ev) {
+    var m = lienzo.getBoundingClientRect(), p = { x: ev.clientX - m.left, y: ev.clientY - m.top };
+    pincel.globalCompositeOperation = 'destination-out'; pincel.lineWidth = 42; pincel.lineCap = 'round'; pincel.lineJoin = 'round';
+    pincel.beginPath(); pincel.moveTo((ultimo || p).x, (ultimo || p).y); pincel.lineTo(p.x + .01, p.y); pincel.stroke();
+    ultimo = p; if (++trazos % 12 === 0) medirRaspado();
+  }
+  function medirRaspado() {
+    var d = pincel.getImageData(0, 0, lienzo.width, lienzo.height).data, vacios = 0, total = 0;
+    for (var i = 3; i < d.length; i += 36) { total++; if (d[i] === 0) vacios++; }
+    if (total && vacios / total > .45) { $('rasca').classList.add('destapada'); $('destapar').hidden = true; }
+  }
+
+  function nivelesDe(nums) {
+    var P = TARJETAS.parche, c = nums.length, colores = {};
+    nums.forEach(function (n) { colores[familiaDe(n).id] = 1; });
+    var nc = Object.keys(colores).length;
+    var faltan = function (k) { return k === 1 ? 'Les falta 1 tarjeta' : 'Les faltan ' + k + ' tarjetas'; };
+    return [
+      { ic: P.minimoDescuento + '+', t: P.descuento + '% de descuento', ok: c >= P.minimoDescuento,
+        x: c >= P.minimoDescuento ? '¡Ganado! En toda la cuenta, si la compra es desde ' + pesos(P.compraMinima) + '.' : faltan(P.minimoDescuento - c) + '. Vale en compras desde ' + pesos(P.compraMinima) + '.' },
+      { ic: String(P.tamano), t: P.premioCinco, ok: c >= P.tamano,
+        x: c >= P.tamano ? '¡Ganada! Y se suma al ' + P.descuento + '%.' : faltan(P.tamano - c) + '.' },
+      { ic: '★', t: 'Arcoíris: ' + P.arcoiris.titulo, ok: c >= P.tamano && nc === TARJETAS.familias.length,
+        x: c >= P.tamano && nc === TARJETAS.familias.length ? '¡Ganado! Las cinco son de colores distintos.' : P.arcoiris.detalle + ' Llevan ' + nc + ' de ' + TARJETAS.familias.length + '.' }
+    ];
+  }
+  function pintarParche() {
+    $('chips-parche').innerHTML = parche.length ? parche.map(function (n) {
+      var f = familiaDe(n);
+      return '<span class="ficha-n" style="background:' + f.color + ';color:' + f.tinta + '">' + dos(n) + '<button type="button" data-quitar-parche="' + n + '" aria-label="Quitar la ' + dos(n) + ' del parche">×</button></span>';
+    }).join('') : '<span class="vacio">Todavía no hay tarjetas en el parche.</span>';
+    $('niveles').innerHTML = nivelesDe(parche).map(function (v) {
+      return '<li class="nivel' + (v.ok ? ' ganado' : '') + '"><span class="ic">' + (v.ok ? '✓' : esc(v.ic)) + '</span><span><b>' + esc(v.t) + '</b><span>' + esc(v.x) + '</span></span></li>';
+    }).join('');
+    guardar('duo-parche', parche);
+  }
+
+  async function refrescarTarjetas() {
+    if (!seccionTarjetasVisible()) return pintarTarjetas();
+    if (CONECTADA) {
+      var r = await pedirJson('/api/tarjetas');
+      usadas = r.ok && r.valor && Array.isArray(r.valor.usadas) ? r.valor.usadas : null;
+      if (r.ok && r.valor) { if (r.valor.vigenteHasta) TARJETAS.vigenteHasta = r.valor.vigenteHasta; if (Array.isArray(r.valor.pistas) && r.valor.pistas.length) TARJETAS.pistas = r.valor.pistas; }
+    }
+    pintarTarjetas();
+    if (origen === TARJETAS.origen && !refrescarTarjetas.visto) { refrescarTarjetas.visto = true; $('tarjetas').scrollIntoView({ block: 'start' }); }
+  }
+
+  $('tarjetas').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (ev.target.id === 'sec-form') {
+      var n = leerNumero($('sec-numero').value);
+      $('sec-aviso').textContent = n ? '' : 'Escribe un número del 1 al ' + TARJETAS.cuantas + ': el que trae tu tarjeta.';
+      if (n) { guardar('duo-mi-tarjeta', n); mostrarRegalo(n, true); }
+    }
+    if (ev.target.id === 'sec-parche') {
+      var e = $('sec-numero-parche'), m = leerNumero(e.value), aviso = '';
+      if (!m) aviso = 'Escribe un número del 1 al ' + TARJETAS.cuantas + '.';
+      else if (parche.indexOf(m) !== -1) aviso = 'La ' + dos(m) + ' ya está en el parche.';
+      else if (usadas && usadas.indexOf(m) !== -1) aviso = 'La ' + dos(m) + ' ya se usó: no puede entrar a un parche.';
+      else if (parche.length >= TARJETAS.parche.tamano) aviso = 'El parche ya tiene ' + TARJETAS.parche.tamano + '. Con las otras armen otro.';
+      $('sec-aviso-parche').textContent = aviso;
+      if (aviso) return;
+      parche.push(m); e.value = ''; e.focus(); pintarParche();
+    }
+  });
+  $('tarjetas').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-quitar-parche]');
+    if (b) { var q = +b.getAttribute('data-quitar-parche'); parche = parche.filter(function (n) { return n !== q; }); pintarParche(); return; }
+    if (ev.target.id === 'destapar') { $('rasca').classList.add('destapada'); ev.target.hidden = true; }
+  });
+  $('tarjetas').addEventListener('pointerdown', function (ev) { if (ev.target.id !== 'lienzo') return; raspando = true; ultimo = null; lienzo.setPointerCapture(ev.pointerId); rascar(ev); });
+  $('tarjetas').addEventListener('pointermove', function (ev) { if (raspando && ev.target.id === 'lienzo') rascar(ev); });
+  ['pointerup', 'pointercancel'].forEach(function (t) { $('tarjetas').addEventListener(t, function () { if (raspando) { raspando = false; ultimo = null; medirRaspado(); } }); });
 
   // ── LA CARTA ──────────────────────────────────────────────────────────
   function franjaLocal() { var h = horaBogota(); return h >= 4 && h < 12 ? 'manana' : h >= 12 && h < 18 ? 'almuerzo' : 'noche'; }
@@ -725,7 +932,8 @@
 
   function pintarCarta() {
     var CATS = categoriasEnOrden();
-    var chips = (eventoVigente() ? '<a href="#evento" class="chip-evento">Inauguración</a>' : '') +
+    var chips = (seccionTarjetasVisible() ? '<a href="#tarjetas" class="chip-secretas">Tarjetas secretas</a>' : '') +
+      (eventoVigente() ? '<a href="#evento" class="chip-evento">Inauguración</a>' : '') +
       CATS.filter(function (c) { return catalogo.some(function (p) { return p.categoria === c[0] && p.id !== 'empaque'; }); })
         .map(function (c) { return '<a href="#cat-' + c[0] + '">' + esc(c[1]) + '</a>'; }).join('');
     $('chips').innerHTML = chips;
@@ -1340,7 +1548,7 @@
   // o el momento del evento, y repinta lo que depende de eso (a medianoche el 31 pasa a «¡Es hoy!» y el 1 se va).
   var visto = null;
   function momentoDeLaPagina() { return [diaDeHoy(), franjaLocal(), cerradoAhora(), evento ? momentoEvento() : ''].join('|'); }
-  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta()]).then(function () { pintarCarta(); ruta(); visto = momentoDeLaPagina(); }); }
+  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta(), refrescarTarjetas()]).then(function () { pintarCarta(); ruta(); visto = momentoDeLaPagina(); }); }
   var vueltas = 0;
   setInterval(function () {
     if (visto === null) return;
