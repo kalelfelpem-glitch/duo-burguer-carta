@@ -369,6 +369,26 @@
   .ver-guia{display:inline-flex; align-items:center; gap:6px; margin:10px 0 0; min-height:44px; background:none; border:0; padding:0; font-weight:800; font-size:16px; color:var(--tinta); text-decoration:underline; text-underline-offset:3px; cursor:pointer}
   .ver-guia span{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--mostaza); border:2px solid var(--tinta); text-decoration:none; font-family:"Lilita One","Nunito",sans-serif}
   @media (prefers-reduced-motion:no-preference){ .guia-paso{animation:entra .25s ease-out} @keyframes entra{from{opacity:0; transform:translateX(12px)} to{opacity:1; transform:none}} }
+
+  /* ---- AGENDAR EL SANCOCHO: de martes a domingo; el lunes no se ve ---- */
+  .sancocho{margin:18px 0 0; background:var(--ketchup); color:#fff; border:3px solid var(--tinta); border-radius:20px; box-shadow:6px 6px 0 var(--tinta); overflow:hidden; position:relative; isolation:isolate}
+  .sancocho::before{content:""; position:absolute; inset:0; z-index:-1; background:repeating-conic-gradient(from 0deg at 85% 10%, #D01828 0 8deg, var(--ketchup) 8deg 16deg)}
+  .san-cabeza{display:grid; grid-template-columns:1fr 92px; gap:8px; align-items:center; padding:14px 14px 4px}
+  .san-cabeza .k{display:inline-block; background:var(--mostaza); color:var(--tinta); border:3px solid var(--tinta); border-radius:10px; padding:1px 10px 3px; font-family:"Lilita One","Nunito",sans-serif; font-size:14px; letter-spacing:1px; text-transform:uppercase; transform:rotate(-2deg)}
+  .san-cabeza h2{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:clamp(26px,7.6vw,32px); line-height:1.02; margin:8px 0 4px; text-shadow:2px 2px 0 var(--tinta)}
+  .san-cabeza p{margin:0; font-weight:800; font-size:15.5px}
+  .san-cabeza p b{color:var(--mostaza)}
+  .san-cabeza svg{width:92px; height:92px; display:block}
+  .san-cuerpo{margin:10px; background:var(--papel); color:var(--tinta); border:3px solid var(--tinta); border-radius:16px; padding:12px}
+  .san-fila{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px}
+  .san-fila b{font-family:"Lilita One","Nunito",sans-serif; font-weight:400; font-size:19px}
+  .san-cuerpo .canales{margin-bottom:6px}
+  .san-total{margin:12px 0 0; display:flex; justify-content:space-between; align-items:baseline; font-family:"Lilita One","Nunito",sans-serif; font-size:22px}
+  .san-total span:last-child{color:var(--ketchup)}
+  .san-total s{font-family:"Nunito",sans-serif; font-weight:800; font-size:15px; color:var(--gris); margin-right:6px}
+  .san-cuerpo .btn{margin-top:10px; background:#25A244; color:#fff}
+  .san-ok{margin-top:10px; background:#E9F6E3; border:2px solid var(--lechuga-oscura); border-radius:12px; padding:8px 10px; font-weight:800}
+  .chips a.chip-sancocho{background:var(--ketchup); color:#fff}
 </style>
 </head>
 <body>
@@ -394,8 +414,9 @@
 </header>
 
 <div class="tu-pedido" id="tu-pedido" hidden></div>
-<section class="secretas" id="tarjetas" aria-label="Las tarjetas secretas" hidden></section>
+<section class="sancocho" id="sancocho" aria-label="Agenda tu sancocho del domingo" hidden></section>
 <section class="evento" id="evento" aria-labelledby="evento-titulo" hidden></section>
+<section class="secretas" id="tarjetas" aria-label="Las tarjetas secretas" hidden></section>
 
 <section id="vista-confirmacion" hidden></section>
 
@@ -506,7 +527,9 @@
   // «llámanos al …» solo si hay numero confirmado; si no, al local.
   function llamanos() { return CONTACTO ? 'escríbenos por WhatsApp al ' + CONTACTO : 'pregunta en el local'; }
   var PAGO = "Para pagar, acércate a la caja.";
-  var TARJETAS = {"activas":false,"cuantas":50,"origen":"tarjeta-secreta","vigenteHasta":null,"pistas":[],"familias":[{"id":"pan","nombre":"Pan","color":"#F4A742","tinta":"#1A1A1A","desde":1,"hasta":10},{"id":"ketchup","nombre":"Kétchup","color":"#E11D2E","tinta":"#FFF7E6","desde":11,"hasta":20},{"id":"mostaza","nombre":"Mostaza","color":"#F6D32D","tinta":"#1A1A1A","desde":21,"hasta":30},{"id":"lechuga","nombre":"Lechuga","color":"#4CAF42","tinta":"#1A1A1A","desde":31,"hasta":40},{"id":"crema","nombre":"Crema","color":"#F7EBD9","tinta":"#1A1A1A","desde":41,"hasta":50}],"regalos":{"descuento":{"titulo":"10% de descuento","detalle":"En toda tu compra.","deDueno":true},"mini":{"titulo":"Coca-Cola mini gratis","detalle":"La de 250 ml, por la compra de una Hamburguesa Especial.","deDueno":true,"productos":["bebida-coca-cola-250"]},"dorada":{"titulo":"Hamburguesa Especial gratis","detalle":"Una de las dos tarjetas doradas: pide tu Especial y no la pagas.","sello":"Dorada","productos":["hamburguesa-especial"]},"inauguracion":{"titulo":"Pase de la inauguración","detalle":"Una Coca-Cola 1,5 L gratis el sábado 31 de octubre, con cualquier compra.","sello":"Nº 31","productos":["bebida-coca-cola-1500"]},"papas":{"titulo":"Porción de papas gratis","detalle":"Con cualquier hamburguesa que pidas.","productos":["adicion-papas"]},"tocineta":{"titulo":"Tocineta gratis","detalle":"La adición de tocineta en tu hamburguesa va por la casa.","productos":["adicion-tocineta"]}},"regaloDe":["dorada","descuento","mini","descuento","papas","mini","mini","mini","mini","papas","tocineta","mini","mini","mini","papas","descuento","descuento","tocineta","descuento","papas","tocineta","mini","tocineta","descuento","papas","tocineta","descuento","mini","tocineta","papas","inauguracion","descuento","descuento","descuento","papas","mini","mini","descuento","descuento","papas","tocineta","mini","descuento","descuento","papas","descuento","mini","descuento","tocineta","dorada"],"parche":{"minimoDescuento":2,"descuento":15,"compraMinima":40000,"tamano":5,"premioCinco":"Salchipapa grande gratis","productoCinco":"salchipapa-pollo-carne-mixta","arcoiris":{"titulo":"+ 5 Coca-Cola mini","detalle":"Si las cinco son de cinco colores distintos.","propuesta":true}}};
+  var TARJETAS = {"activas":true,"cuantas":50,"origen":"tarjeta-secreta","vigenteHasta":null,"pistas":[],"familias":[{"id":"pan","nombre":"Pan","color":"#F4A742","tinta":"#1A1A1A","desde":1,"hasta":10},{"id":"ketchup","nombre":"Kétchup","color":"#E11D2E","tinta":"#FFF7E6","desde":11,"hasta":20},{"id":"mostaza","nombre":"Mostaza","color":"#F6D32D","tinta":"#1A1A1A","desde":21,"hasta":30},{"id":"lechuga","nombre":"Lechuga","color":"#4CAF42","tinta":"#1A1A1A","desde":31,"hasta":40},{"id":"crema","nombre":"Crema","color":"#F7EBD9","tinta":"#1A1A1A","desde":41,"hasta":50}],"regalos":{"descuento":{"titulo":"10% de descuento","detalle":"En toda tu compra.","deDueno":true},"mini":{"titulo":"Coca-Cola mini gratis","detalle":"La de 250 ml, por la compra de una Hamburguesa Especial.","deDueno":true,"productos":["bebida-coca-cola-250"]},"dorada":{"titulo":"Hamburguesa Especial gratis","detalle":"Una de las dos tarjetas doradas: pide tu Especial y no la pagas.","sello":"Dorada","productos":["hamburguesa-especial"]},"inauguracion":{"titulo":"Pase de la inauguración","detalle":"Una Coca-Cola 1,5 L gratis el sábado 31 de octubre, con cualquier compra.","sello":"Nº 31","productos":["bebida-coca-cola-1500"]},"papas":{"titulo":"Porción de papas gratis","detalle":"Con cualquier hamburguesa que pidas.","productos":["adicion-papas"]},"tocineta":{"titulo":"Tocineta gratis","detalle":"La adición de tocineta en tu hamburguesa va por la casa.","productos":["adicion-tocineta"]}},"regaloDe":["dorada","descuento","mini","descuento","papas","mini","mini","mini","mini","papas","tocineta","mini","mini","mini","papas","descuento","descuento","tocineta","descuento","papas","tocineta","mini","tocineta","descuento","papas","tocineta","descuento","mini","tocineta","papas","inauguracion","descuento","descuento","descuento","papas","mini","mini","descuento","descuento","papas","tocineta","mini","descuento","descuento","papas","descuento","mini","descuento","tocineta","dorada"],"parche":{"minimoDescuento":2,"descuento":15,"compraMinima":40000,"tamano":5,"premioCinco":"Salchipapa grande gratis","productoCinco":"salchipapa-pollo-carne-mixta","arcoiris":{"titulo":"+ 5 Coca-Cola mini","detalle":"Si las cinco son de cinco colores distintos.","propuesta":true}}};
+  var SANCOCHO = {"activo":true,"productoId":"almuerzo-domingo","nombre":"Sancocho","descuentoAgendar":5,"diaOculto":1};
+  var WHATSAPP = "573018484012";
   var ERROR_RED = 'No pudimos conectarnos con la cocina. Revisa tu internet e inténtalo otra vez.';
   var ESTADOS = ['recibida', 'en-preparacion', 'lista', 'en-camino', 'entregada'];
   var NOMBRE_ESTADO = { recibida: 'Recibido', 'en-preparacion': 'Preparando', lista: 'Listo', 'en-camino': 'En camino', entregada: 'Entregado' };
@@ -541,7 +564,7 @@
 
   function leer(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-  function pesos(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+  function pesos(n) { return (n < 0 ? '−$' : '$') + Math.abs(Math.round(n)).toLocaleString('es-CO'); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function $(id) { return document.getElementById(id); }
   function porId(id) { for (var i = 0; i < catalogo.length; i++) if (catalogo[i].id === id) return catalogo[i]; return null; }
@@ -854,6 +877,95 @@
     if (ev.target.closest('#ver-guia')) { guiaPaso = 0; pintarGuia(true); $('guia').scrollIntoView({ block: 'center' }); }
   });
 
+  // ── AGENDAR EL SANCOCHO DEL DOMINGO ──────────────────────────────────
+  // De martes a domingo; el lunes se esconde (dueño). El precio es el del almuerzo del domingo en el
+  // catálogo, con el descuento por agendar. Mientras el sistema no reciba pedidos agendados, el pedido
+  // sale armado por WhatsApp; el domingo mismo, se pide como cualquier plato.
+  var OLLA_MINI = '<svg viewBox="0 0 92 92" aria-hidden="true"><g fill="none" stroke="#FFF7E6" stroke-width="4" stroke-linecap="round"><path d="M34 22c-5-5 5-8 0-14"/><path d="M46 20c-5-5 5-8 0-14"/><path d="M58 22c-5-5 5-8 0-14"/></g><ellipse cx="46" cy="38" rx="36" ry="9" fill="#F6D32D" stroke="#1A1A1A" stroke-width="4"/><path d="M10 38a36 9 0 0 0 72 0l-3 30q-2 14-17 14H30Q15 82 13 68z" fill="#B3141F" stroke="#1A1A1A" stroke-width="4" stroke-linejoin="round"/><g fill="#F7EBD9"><circle cx="26" cy="56" r="4"/><circle cx="46" cy="64" r="4"/><circle cx="64" cy="54" r="4"/></g><rect x="2" y="42" width="10" height="7" rx="3" fill="#1A1A1A"/><rect x="80" y="42" width="10" height="7" rx="3" fill="#1A1A1A"/></svg>';
+  var sancocho = { cantidad: 1, canal: 'recoger' };
+  function domingoQueViene() {
+    var d = diaBogota(ahora().getTime()), p = d.split('-').map(Number), faltan = (7 - hoy) % 7;
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2] + faltan)).toISOString().slice(0, 10);
+  }
+  // El agendado entra al pedido de la página cuando el sistema lo sabe recibir (contrato 1.3); antes, por WhatsApp.
+  function agendaEnPagina() {
+    var v = String(pedirJson.version || '0').split('.').map(Number);
+    return CONECTADA && enLinea && (v[0] > 1 || (v[0] === 1 && (v[1] || 0) >= 3));
+  }
+  function sancochoVisible() { return SANCOCHO.activo && hoy !== SANCOCHO.diaOculto && $('vista-confirmacion').hidden; }
+  function precioSancocho() { var p = porId(SANCOCHO.productoId); return p ? p.precio : null; }
+  function pintarSancocho() {
+    var s = $('sancocho');
+    s.hidden = !sancochoVisible();
+    if (s.hidden) return;
+    var dom = domingoQueViene(), esHoy = hoy === 0, precio = precioSancocho();
+    var cab = '<div class="san-cabeza"><div><span class="k">' + (esHoy ? '¡Es hoy!' : 'Plato de domingo') + '</span>' +
+      '<h2>' + (esHoy ? '¡Hoy hay sancocho!' : 'Agenda tu sancocho') + '</h2>' +
+      '<p>' + (esHoy ? 'Pa\' compartir en familia. Pídelo ya.' : 'Para el ' + esc(diaLargo(dom)) + '. <b>Agéndalo y gana ' + SANCOCHO.descuentoAgendar + '% de descuento.</b>') + '</p></div>' + OLLA_MINI + '</div>';
+    if (esHoy) {
+      s.innerHTML = cab + '<div class="san-cuerpo">' + (enLinea ? '<a class="btn primario" href="#cat-almuerzos">Pídelo ya</a>' :
+        (WHATSAPP ? '<a class="btn" target="_blank" rel="noopener" href="https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('¡Hola Duo Burguer! Quiero pedir sancocho hoy.') + '">Pídelo por WhatsApp</a>' : '<p>Pídelo en el local.</p>')) + '</div>';
+      return;
+    }
+    var bruto = precio != null ? precio * sancocho.cantidad : null;
+    var neto = bruto != null ? bruto - Math.round(bruto * SANCOCHO.descuentoAgendar / 100) : null;
+    if (agendaEnPagina()) {
+      s.innerHTML = cab + '<div class="san-cuerpo">' +
+        '<div class="san-fila"><b>¿Cuántos?</b><span class="paso"><button type="button" data-san="menos" aria-label="Uno menos">−</button><span id="san-cantidad">' + sancocho.cantidad + '</span><button type="button" data-san="mas" aria-label="Uno más">+</button></span></div>' +
+        (neto != null ? '<div class="san-total"><span>Total</span><span><s>' + pesos(bruto) + '</s>' + pesos(neto) + '</span></div>' : '') +
+        '<button class="btn primario" type="button" data-san="agendar">Agendar mi sancocho</button>' +
+        '<p class="fino" style="margin:8px 0 0">Después escoges si lo recoges' + (zonas.length ? ' o te lo llevamos' : '') + ', y lo envías como cualquier pedido. ' + esc(PAGO) + '</p></div>';
+      return;
+    }
+    s.innerHTML = cab + '<form class="san-cuerpo" id="san-form" novalidate>' +
+      '<div class="san-fila"><b>¿Cuántos?</b><span class="paso"><button type="button" data-san="menos" aria-label="Uno menos">−</button><span id="san-cantidad">' + sancocho.cantidad + '</span><button type="button" data-san="mas" aria-label="Uno más">+</button></span></div>' +
+      '<div class="canales" role="radiogroup" aria-label="¿Cómo lo quieres?">' +
+        '<label><input type="radio" name="san-canal" value="recoger"' + (sancocho.canal === 'recoger' ? ' checked' : '') + '><span>Lo recojo</span></label>' +
+        '<label><input type="radio" name="san-canal" value="domicilio"' + (sancocho.canal === 'domicilio' ? ' checked' : '') + '><span>A domicilio</span></label></div>' +
+      '<div class="campo"><label for="san-nombre">Tu nombre</label><input id="san-nombre" autocomplete="name" maxlength="60"></div>' +
+      (sancocho.canal === 'domicilio' ? '<div class="campo"><label for="san-dir">Dirección</label><input id="san-dir" autocomplete="street-address" maxlength="120" placeholder="Barrio, calle y número"></div><p class="fino" style="margin:6px 0 0">El costo del domicilio te lo confirmamos por WhatsApp.</p>' : '') +
+      (neto != null ? '<div class="san-total"><span>Total</span><span><s>' + pesos(bruto) + '</s>' + pesos(neto) + '</span></div>' : '') +
+      '<div class="error-general" id="san-error" role="alert"></div>' +
+      (WHATSAPP ? '<button class="btn" type="submit">Agendar por WhatsApp</button>' : '<p class="fino">Agéndalo en el local.</p>') +
+      '<p class="fino" style="margin:8px 0 0">Te respondemos para confirmar. ' + esc(PAGO) + '</p>' +
+      '<div id="san-ok"></div></form>';
+  }
+  $('sancocho').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-san]'); if (!b) return;
+    if (b.getAttribute('data-san') === 'agendar') {
+      var dom = domingoQueViene();
+      if (carrito.lineas.length && carrito.tipo !== 'agenda' && !window.confirm('Tu pedido tiene otras cosas, y lo que se agenda para el domingo va en un pedido aparte. ¿Vaciamos el pedido y lo agendas?')) return;
+      carrito = { tipo: 'agenda', eventoId: null, programadaPara: dom, lineas: [{ clave: claveLinea(SANCOCHO.productoId, []), productoId: SANCOCHO.productoId, cantidad: sancocho.cantidad, selecciones: [] }] };
+      guardarCarrito(); abrirHoja();
+      return;
+    }
+    var guardado = { nombre: ($('san-nombre') || {}).value, dir: ($('san-dir') || {}).value };
+    sancocho.cantidad = Math.max(1, Math.min(20, sancocho.cantidad + (b.getAttribute('data-san') === 'mas' ? 1 : -1)));
+    pintarSancocho();
+    if ($('san-nombre')) $('san-nombre').value = guardado.nombre || ''; if ($('san-dir')) $('san-dir').value = guardado.dir || '';
+  });
+  $('sancocho').addEventListener('change', function (ev) {
+    if (ev.target.name !== 'san-canal') return;
+    var nombre = $('san-nombre').value;
+    sancocho.canal = ev.target.value; pintarSancocho(); $('san-nombre').value = nombre;
+  });
+  $('sancocho').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var nombre = $('san-nombre').value.trim(), dir = $('san-dir') ? $('san-dir').value.trim() : '';
+    if (!nombre) { $('san-error').textContent = 'Escribe tu nombre.'; return; }
+    if (sancocho.canal === 'domicilio' && !dir) { $('san-error').textContent = 'Escribe la dirección para llevártelo.'; return; }
+    $('san-error').textContent = '';
+    var precio = precioSancocho(), bruto = precio != null ? precio * sancocho.cantidad : null;
+    var neto = bruto != null ? bruto - Math.round(bruto * SANCOCHO.descuentoAgendar / 100) : null;
+    var n = sancocho.cantidad;
+    var texto = '¡Hola Duo Burguer! Quiero agendar ' + n + (n === 1 ? ' sancocho' : ' sancochos') + ' para el ' + diaLargo(domingoQueViene()) + '.\n' +
+      (sancocho.canal === 'domicilio' ? 'A domicilio: ' + dir + '.\n' : 'Lo recojo en el local.\n') +
+      'A nombre de: ' + nombre + '.\n' +
+      (neto != null ? 'Total con el ' + SANCOCHO.descuentoAgendar + '% por agendar: ' + pesos(neto) + (sancocho.canal === 'domicilio' ? ' más el domicilio.' : '.') : '');
+    window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+    $('san-ok').innerHTML = '<div class="san-ok">¡Listo! Envía el mensaje en WhatsApp y te confirmamos tu sancocho.</div>';
+  });
+
   // ── LA CARTA ──────────────────────────────────────────────────────────
   function franjaLocal() { var h = horaBogota(); return h >= 4 && h < 12 ? 'manana' : h >= 12 && h < 18 ? 'almuerzo' : 'noche'; }
   function franjaDeAhora() { return franjaActual || franjaLocal(); }
@@ -1061,7 +1173,8 @@
 
   function pintarCarta() {
     var CATS = categoriasEnOrden();
-    var chips = (seccionTarjetasVisible() ? '<a href="#tarjetas" class="chip-secretas">Tarjetas secretas</a>' : '') +
+    var chips = (sancochoVisible() ? '<a href="#sancocho" class="chip-sancocho">Sancocho</a>' : '') +
+      (seccionTarjetasVisible() ? '<a href="#tarjetas" class="chip-secretas">Tarjetas secretas</a>' : '') +
       (eventoVigente() ? '<a href="#evento" class="chip-evento">Inauguración</a>' : '') +
       CATS.filter(function (c) { return catalogo.some(function (p) { return p.categoria === c[0] && p.id !== 'empaque'; }); })
         .map(function (c) { return '<a href="#cat-' + c[0] + '">' + esc(c[1]) + '</a>'; }).join('');
@@ -1112,6 +1225,7 @@
     return p.precio + r;
   }
   function nombreLinea(l) {
+    if (carrito.tipo === 'agenda' && l.productoId === SANCOCHO.productoId) return SANCOCHO.nombre + ' del domingo';
     if (carrito.tipo === 'evento') {
       var pe = evento && evento.productos.filter(function (x) { return x.productoId === l.productoId; })[0];
       return pe ? pe.nombre : l.productoId;
@@ -1128,8 +1242,10 @@
   function agregarLinea(tipo, eventoId, productoId, selecciones) {
     if (carrito.lineas.length && (carrito.tipo !== tipo || carrito.eventoId !== eventoId)) {
       var msg = tipo === 'evento'
-        ? 'Tu pedido tiene cosas de la carta de hoy, y lo que se aparta para el evento va en un pedido aparte. ¿Vaciamos el pedido y lo apartas?'
-        : 'Tu pedido es un apartado para el evento, y la carta de hoy va en un pedido aparte. ¿Lo vaciamos para pedir de la carta de hoy?';
+        ? 'Tu pedido tiene otras cosas, y lo que se aparta para el evento va en un pedido aparte. ¿Vaciamos el pedido y lo apartas?'
+        : tipo === 'agenda'
+        ? 'Tu pedido tiene otras cosas, y lo que se agenda para el domingo va en un pedido aparte. ¿Vaciamos el pedido y lo agendas?'
+        : 'Tu pedido es ' + (carrito.tipo === 'agenda' ? 'un sancocho agendado' : 'un apartado para el evento') + ', y la carta de hoy va en un pedido aparte. ¿Lo vaciamos para pedir de la carta de hoy?';
       if (!window.confirm(msg)) return false;
       carrito = { tipo: tipo, eventoId: eventoId, lineas: [] };
     }
@@ -1151,20 +1267,22 @@
 
   function lineasValidas() { return carrito.lineas.filter(function (l) { return precioLinea(l) != null; }); }
   function canalElegido() { var x = document.querySelector('#canales input:checked'); return x ? x.value : null; }
-  function empaqueAplica(canal) { var e = porId('empaque'); return carrito.tipo === 'carta' && canal !== 'mesa' && e && e.pedible ? e : null; }
+  function empaqueAplica(canal) { var e = porId('empaque'); return carrito.tipo !== 'evento' && canal !== 'mesa' && e && (e.pedible || carrito.tipo === 'agenda') ? e : null; }
   function zonaElegida() { var id = $('f-zona').value; return zonas.filter(function (z) { return z.zonaId === id; })[0] || null; }
   function totales() {
     var canal = canalElegido();
     var sub = lineasValidas().reduce(function (s, l) { return s + precioLinea(l) * l.cantidad; }, 0);
     var e = sub > 0 ? empaqueAplica(canal) : null;
     var z = canal === 'domicilio' ? zonaElegida() : null;
-    return { sub: sub, empaque: e ? e.precio : 0, domicilio: z ? z.costoCop : 0, total: sub + (e ? e.precio : 0) + (z ? z.costoCop : 0) };
+    // Agendado: 5% sobre los productos (lo calcula el sistema; aquí se estima igual).
+    var desc = carrito.tipo === 'agenda' ? Math.round(sub * SANCOCHO.descuentoAgendar / 100) : 0;
+    return { sub: sub, descuento: desc, empaque: e ? e.precio : 0, domicilio: z ? z.costoCop : 0, total: sub - desc + (e ? e.precio : 0) + (z ? z.costoCop : 0) };
   }
   function pintarBarra() {
     var n = lineasValidas().reduce(function (s, l) { return s + l.cantidad; }, 0);
     $('barra').hidden = !enLinea || n === 0 || !$('vista-confirmacion').hidden;
     $('cuenta').textContent = n;
-    $('barra-texto').textContent = carrito.editando ? 'Ver los cambios' : carrito.tipo === 'evento' ? 'Ver mi apartado' : 'Ver mi pedido';
+    $('barra-texto').textContent = carrito.editando ? 'Ver los cambios' : carrito.tipo === 'evento' ? 'Ver mi apartado' : carrito.tipo === 'agenda' ? 'Ver mi agendado' : 'Ver mi pedido';
     $('barra-total').textContent = pesos(totales().sub);
   }
 
@@ -1194,6 +1312,7 @@
   function pintarTotales() {
     var t = totales();
     var d = '';
+    if (t.descuento) d += '<div class="linea"><div><div class="n">Descuento por agendar (' + SANCOCHO.descuentoAgendar + '%)</div></div><div class="p">−' + pesos(t.descuento) + '</div></div>';
     if (t.empaque) d += '<div class="linea"><div><div class="n">Empaque para llevar</div><div class="fija">Va una vez en todo pedido para llevar</div></div><div class="p">' + pesos(t.empaque) + '</div></div>';
     if (t.domicilio) d += '<div class="linea"><div><div class="n">Domicilio</div></div><div class="p">' + pesos(t.domicilio) + '</div></div>';
     $('desglose').innerHTML = d;
@@ -1202,11 +1321,12 @@
   function pintarHoja() {
     var ls = lineasValidas();
     var editado = carrito.editando ? pedidosGuardados()[carrito.editando] : null;
-    $('hoja-titulo').textContent = editado ? 'Modificar tu pedido #' + editado.consecutivo : carrito.tipo === 'evento' ? 'Tu apartado' : 'Tu pedido';
+    $('hoja-titulo').textContent = editado ? 'Modificar tu pedido #' + editado.consecutivo : carrito.tipo === 'evento' ? 'Tu apartado' : carrito.tipo === 'agenda' ? 'Tu sancocho agendado' : 'Tu pedido';
     $('hoja-edicion').hidden = !editado;
     if (editado) $('hoja-edicion').innerHTML = 'Estás cambiando tu pedido. Guarda antes de que se acabe el plazo: te quedan ' + mmss(restanteParaModificar(editado)) + '.<br><button type="button" data-descartar>Descartar cambios y volver a mi pedido</button>';
     $('enviar').textContent = editado ? 'Guardar cambios' : 'Enviar pedido';
-    $('hoja-evento').hidden = carrito.tipo !== 'evento';
+    $('hoja-evento').hidden = carrito.tipo !== 'evento' && carrito.tipo !== 'agenda';
+    if (carrito.tipo === 'agenda') $('hoja-evento').textContent = 'Agendado para el ' + diaLargo(carrito.programadaPara) + ', con ' + SANCOCHO.descuentoAgendar + '% de descuento por agendar.';
     if (carrito.tipo === 'evento' && evento) $('hoja-evento').textContent = evento.nombre + ': se entrega ' + punto(evento.entregaDesde ? 'el ' + fecha(evento.entregaDesde, true) : 'el día del evento');
     $('hoja-lineas').innerHTML = ls.length ? ls.map(function (l) {
       return '<div class="linea"><div><div class="n">' + esc(nombreLinea(l)) + '</div><div class="p">' + pesos(precioLinea(l) * l.cantidad) + '</div></div>' +
@@ -1258,6 +1378,7 @@
       cuerpo.autorizacion = f.autoriza.checked === true;
     }
     if (carrito.tipo === 'evento') cuerpo.eventoId = carrito.eventoId;
+    if (carrito.tipo === 'agenda') cuerpo.programadaPara = carrito.programadaPara;
     lineasValidas().forEach(function (l) {
       var x = { productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] };
       if (conPrecio) x.precioUnitarioCop = precioLinea(l);
@@ -1307,6 +1428,7 @@
     if (!o || typeof id !== 'string') return marcar('', 'El pedido se envió pero la respuesta llegó incompleta. No lo vuelvas a enviar: ' + llamanos() + '.');
     var t = totales();
     var vista = lineasValidas().map(function (l) { return { productoId: l.productoId, selecciones: l.selecciones || [], cantidad: l.cantidad, nombre: nombreLinea(l), subtotal: precioLinea(l) * l.cantidad }; });
+    if (t.descuento) vista.push({ extra: true, nombre: 'Descuento por agendar', subtotal: -t.descuento });
     if (t.empaque) vista.push({ extra: true, nombre: 'Empaque para llevar', subtotal: t.empaque });
     if (t.domicilio) vista.push({ extra: true, nombre: 'Domicilio', subtotal: t.domicilio });
     var f = $('form'), pedidos = pedidosGuardados(), previo = pedidos[id] || {};
@@ -1314,6 +1436,7 @@
       consecutivo: o.consecutivo, totalCop: o.totalCop, estado: o.estado || 'recibida', canal: canal, mesa: canal === 'mesa' ? numeroMesa() : null,
       eventoId: carrito.tipo === 'evento' ? carrito.eventoId : null, entregaDesde: carrito.tipo === 'evento' && evento ? evento.entregaDesde : null,
       eventoNombre: carrito.tipo === 'evento' && evento ? evento.nombre : null,
+      programadaPara: carrito.tipo === 'agenda' ? carrito.programadaPara : null,
       hechoEn: previo.hechoEn || Date.now(),
       modificableHasta: o.modificableHasta || previo.modificableHasta || null,
       tokenEdicion: o.tokenEdicion || previo.tokenEdicion || null,
@@ -1477,7 +1600,7 @@
 
   // ── EL SEGUIMIENTO ───────────────────────────────────────────────────
   async function mostrarPedido(id) {
-    $('vista-tienda').hidden = true; $('evento').hidden = true; $('vista-confirmacion').hidden = false; pintarBarra(); clearInterval(reloj); $('guia').hidden = true; $('ver-guia').hidden = true;
+    $('vista-tienda').hidden = true; $('evento').hidden = true; $('vista-confirmacion').hidden = false; pintarBarra(); clearInterval(reloj); $('guia').hidden = true; $('ver-guia').hidden = true; $('sancocho').hidden = true;
     $('cta-hero').parentNode.hidden = true;
     var local = pedidosGuardados()[id] || {};
     var consulta = consultarAvisos();
@@ -1507,7 +1630,7 @@
     var i = estados.indexOf(o.estado);
     var pasos = o.estado === 'anulada' ? '<p class="cancelada">Este pedido fue anulado. Si tienes dudas, ' + esc(llamanos()) + '.</p>' :
       '<ol class="estados" style="grid-template-columns:repeat(' + estados.length + ',1fr)">' + estados.map(function (e, k) { return '<li class="' + (k < i ? 'hecho' : k === i ? 'ahora' : '') + '">' + NOMBRE_ESTADO[e] + '</li>'; }).join('') + '</ol>';
-    var cuando = local.eventoId ? '<p class="nota-evento">' + esc(local.eventoNombre || 'Pedido del evento') + ': se entrega ' + esc(punto(local.entregaDesde ? 'el ' + fecha(local.entregaDesde, true) : 'el día del evento')) + '</p>' : '';
+    var cuando = local.programadaPara ? '<p class="nota-evento">Agendado para el ' + esc(diaLargo(local.programadaPara)) + '. Ese día lo preparamos.</p>' : local.eventoId ? '<p class="nota-evento">' + esc(local.eventoNombre || 'Pedido del evento') + ': se entrega ' + esc(punto(local.entregaDesde ? 'el ' + fecha(local.entregaDesde, true) : 'el día del evento')) + '</p>' : '';
     estadoDelPedido[id] = o.estado;
     $('vista-confirmacion').innerHTML =
       '<div class="confirmacion">' +
@@ -1536,7 +1659,7 @@
     if (m && CONECTADA) return mostrarPedido(decodeURIComponent(m[1]));
     clearTimeout(sondeo); clearInterval(relojMod); mostrarPedido.visto = false;
     $('cta-hero').parentNode.hidden = false;
-    $('vista-confirmacion').hidden = true; $('vista-tienda').hidden = false; pintarEvento(); pintarGuia(false);
+    $('vista-confirmacion').hidden = true; $('vista-tienda').hidden = false; pintarEvento(); pintarGuia(false); pintarSancocho();
     pintarBarra(); pintarTuPedido();
   }
 
@@ -1744,6 +1867,7 @@
       if (numeroMesa()) { $('aviso-mesa').hidden = false; $('aviso-mesa').innerHTML = 'Estás pidiendo desde la <b>mesa ' + esc(numeroMesa()) + '</b>. Tu pedido llega a esta mesa.'; }
       // Lo que ya no esta en la carta sale del pedido guardado (solo contra la del sistema: la local no se pide).
       if (carrito.tipo === 'carta') carrito.lineas = carrito.lineas.filter(function (l) { var p = porId(l.productoId); return p && p.pedible; });
+      if (carrito.tipo === 'agenda' && (!carrito.programadaPara || carrito.programadaPara <= diaBogota(ahora().getTime()))) carrito = { tipo: 'carta', eventoId: null, lineas: [] };
       guardar('duo-pedido-v2', carrito);
     } else {
       // Sin sistema (al cargar o en una recarga del vigia): nada invita a pedir, y el pedido a medio armar se guarda.
@@ -1759,7 +1883,7 @@
     var local = pedidosGuardados()[id];
     if (!local || restanteParaModificar(local) <= 0) return mostrarPedido(id);
     carrito = {
-      tipo: local.eventoId ? 'evento' : 'carta', eventoId: local.eventoId || null, editando: id,
+      tipo: local.programadaPara ? 'agenda' : local.eventoId ? 'evento' : 'carta', eventoId: local.eventoId || null, programadaPara: local.programadaPara || null, editando: id,
       lineas: (local.lineasVista || []).filter(function (l) { return !l.extra; }).map(function (l) { return { clave: claveLinea(l.productoId, l.selecciones || []), productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] }; })
     };
     guardar('duo-pedido-v2', carrito);
@@ -1832,7 +1956,7 @@
   // o el momento del evento, y repinta lo que depende de eso (a medianoche el 31 pasa a «¡Es hoy!» y el 1 se va).
   var visto = null;
   function momentoDeLaPagina() { return [diaDeHoy(), franjaLocal(), cerradoAhora(), evento ? momentoEvento() : ''].join('|'); }
-  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta(), refrescarTarjetas()]).then(function () { pintarCarta(); ruta(); pintarGuia(false); visto = momentoDeLaPagina(); }); }
+  function cargar() { return Promise.all([refrescarEvento(), refrescarCarta(), refrescarTarjetas()]).then(function () { pintarCarta(); ruta(); pintarGuia(false); pintarSancocho(); visto = momentoDeLaPagina(); }); }
   var vueltas = 0;
   setInterval(function () {
     if (visto === null) return;
