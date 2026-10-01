@@ -528,7 +528,7 @@
   function llamanos() { return CONTACTO ? 'escríbenos por WhatsApp al ' + CONTACTO : 'pregunta en el local'; }
   var PAGO = "Para pagar, acércate a la caja.";
   var TARJETAS = {"activas":true,"cuantas":50,"origen":"tarjeta-secreta","vigenteHasta":null,"pistas":[],"familias":[{"id":"pan","nombre":"Pan","color":"#F4A742","tinta":"#1A1A1A","desde":1,"hasta":10},{"id":"ketchup","nombre":"Kétchup","color":"#E11D2E","tinta":"#FFF7E6","desde":11,"hasta":20},{"id":"mostaza","nombre":"Mostaza","color":"#F6D32D","tinta":"#1A1A1A","desde":21,"hasta":30},{"id":"lechuga","nombre":"Lechuga","color":"#4CAF42","tinta":"#1A1A1A","desde":31,"hasta":40},{"id":"crema","nombre":"Crema","color":"#F7EBD9","tinta":"#1A1A1A","desde":41,"hasta":50}],"regalos":{"descuento":{"titulo":"10% de descuento","detalle":"En toda tu compra.","deDueno":true},"mini":{"titulo":"Coca-Cola mini gratis","detalle":"La de 250 ml, por la compra de una Hamburguesa Especial.","deDueno":true,"productos":["bebida-coca-cola-250"]},"dorada":{"titulo":"Hamburguesa Especial gratis","detalle":"Una de las dos tarjetas doradas: pide tu Especial y no la pagas.","sello":"Dorada","productos":["hamburguesa-especial"]},"inauguracion":{"titulo":"Pase de la inauguración","detalle":"Una Coca-Cola 1,5 L gratis el sábado 31 de octubre, con cualquier compra.","sello":"Nº 31","productos":["bebida-coca-cola-1500"]},"papas":{"titulo":"Porción de papas gratis","detalle":"Con cualquier hamburguesa que pidas.","productos":["adicion-papas"]},"tocineta":{"titulo":"Tocineta gratis","detalle":"La adición de tocineta en tu hamburguesa va por la casa.","productos":["adicion-tocineta"]}},"regaloDe":["dorada","descuento","mini","descuento","papas","mini","mini","mini","mini","papas","tocineta","mini","mini","mini","papas","descuento","descuento","tocineta","descuento","papas","tocineta","mini","tocineta","descuento","papas","tocineta","descuento","mini","tocineta","papas","inauguracion","descuento","descuento","descuento","papas","mini","mini","descuento","descuento","papas","tocineta","mini","descuento","descuento","papas","descuento","mini","descuento","tocineta","dorada"],"parche":{"minimoDescuento":2,"descuento":15,"compraMinima":40000,"tamano":5,"premioCinco":"Salchipapa grande gratis","productoCinco":"salchipapa-pollo-carne-mixta","arcoiris":{"titulo":"+ 5 Coca-Cola mini","detalle":"Si las cinco son de cinco colores distintos.","propuesta":true}}};
-  var SANCOCHO = {"activo":true,"productoId":"almuerzo-domingo","nombre":"Sancocho","descuentoAgendar":5,"diaOculto":1};
+  var SANCOCHO = {"activo":true,"desde":"2026-10-01","domingo":"2026-10-04","productoId":"almuerzo-domingo","nombre":"Sancocho","descuentoAgendar":5};
   var WHATSAPP = "573018484012";
   var ERROR_RED = 'No pudimos conectarnos con la cocina. Revisa tu internet e inténtalo otra vez.';
   var ESTADOS = ['recibida', 'en-preparacion', 'lista', 'en-camino', 'entregada'];
@@ -883,22 +883,23 @@
   // sale armado por WhatsApp; el domingo mismo, se pide como cualquier plato.
   var OLLA_MINI = '<svg viewBox="0 0 92 92" aria-hidden="true"><g fill="none" stroke="#FFF7E6" stroke-width="4" stroke-linecap="round"><path d="M34 22c-5-5 5-8 0-14"/><path d="M46 20c-5-5 5-8 0-14"/><path d="M58 22c-5-5 5-8 0-14"/></g><ellipse cx="46" cy="38" rx="36" ry="9" fill="#F6D32D" stroke="#1A1A1A" stroke-width="4"/><path d="M10 38a36 9 0 0 0 72 0l-3 30q-2 14-17 14H30Q15 82 13 68z" fill="#B3141F" stroke="#1A1A1A" stroke-width="4" stroke-linejoin="round"/><g fill="#F7EBD9"><circle cx="26" cy="56" r="4"/><circle cx="46" cy="64" r="4"/><circle cx="64" cy="54" r="4"/></g><rect x="2" y="42" width="10" height="7" rx="3" fill="#1A1A1A"/><rect x="80" y="42" width="10" height="7" rx="3" fill="#1A1A1A"/></svg>';
   var sancocho = { cantidad: 1, canal: 'recoger' };
-  function domingoQueViene() {
-    var d = diaBogota(ahora().getTime()), p = d.split('-').map(Number), faltan = (7 - hoy) % 7;
-    return new Date(Date.UTC(p[0], p[1] - 1, p[2] + faltan)).toISOString().slice(0, 10);
-  }
+  // El domingo del evento lo escoge la casa (datos.ts): no es semanal.
+  function domingoQueViene() { return SANCOCHO.domingo; }
   // El agendado entra al pedido de la página cuando el sistema lo sabe recibir (contrato 1.3); antes, por WhatsApp.
   function agendaEnPagina() {
     var v = String(pedirJson.version || '0').split('.').map(Number);
     return CONECTADA && enLinea && (v[0] > 1 || (v[0] === 1 && (v[1] || 0) >= 3));
   }
-  function sancochoVisible() { return SANCOCHO.activo && hoy !== SANCOCHO.diaOculto && $('vista-confirmacion').hidden; }
+  function sancochoVisible() {
+    var d = diaBogota(ahora().getTime());
+    return SANCOCHO.activo && d >= SANCOCHO.desde && d <= SANCOCHO.domingo && $('vista-confirmacion').hidden;
+  }
   function precioSancocho() { var p = porId(SANCOCHO.productoId); return p ? p.precio : null; }
   function pintarSancocho() {
     var s = $('sancocho');
     s.hidden = !sancochoVisible();
     if (s.hidden) return;
-    var dom = domingoQueViene(), esHoy = hoy === 0, precio = precioSancocho();
+    var dom = domingoQueViene(), esHoy = diaBogota(ahora().getTime()) === SANCOCHO.domingo, precio = precioSancocho();
     var cab = '<div class="san-cabeza"><div><span class="k">' + (esHoy ? '¡Es hoy!' : 'Plato de domingo') + '</span>' +
       '<h2>' + (esHoy ? '¡Hoy hay sancocho!' : 'Agenda tu sancocho') + '</h2>' +
       '<p>' + (esHoy ? 'Pa\' compartir en familia. Pídelo ya.' : 'Para el ' + esc(diaLargo(dom)) + '. <b>Agéndalo y gana ' + SANCOCHO.descuentoAgendar + '% de descuento.</b>') + '</p></div>' + OLLA_MINI + '</div>';
