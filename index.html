@@ -1734,6 +1734,9 @@
     if (carrito.tipo === 'agenda') cuerpo.programadaPara = carrito.programadaPara;
     lineasValidas().forEach(function (l) {
       var x = { productoId: l.productoId, cantidad: l.cantidad, selecciones: l.selecciones || [] };
+      // El almuerzo del día viaja con el plato que vio el cliente (contrato 1.5): si la página quedó abierta
+      // desde ayer, el sistema lo nota y responde 409 en vez de venderle otro plato al mismo precio.
+      var pl = porId(l.productoId); if (pl && pl.plato) x.plato = pl.plato;
       if (conPrecio) x.precioUnitarioCop = precioLinea(l);
       cuerpo.lineas.push(x);
     });
